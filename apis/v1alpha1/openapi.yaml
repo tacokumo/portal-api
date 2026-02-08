@@ -1,0 +1,147 @@
+openapi: 3.0.0
+info:
+  title: Portal API
+  description: PortalAPIのOpenAPI Spec
+  version: 2.0.0
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers: []
+security: []
+tags:
+- name: "GetHealthLiveness"
+  description: "liveness statusを取得するAPI"
+- name: "GetHealthReadiness"
+  description: "readiness statusを取得するAPI"
+externalDocs: {}
+paths:
+  /health/liveness:
+    get:
+      tags:
+        - "GetHealthLiveness"
+      summary: "Get Liveness Status"
+      description: "liveness statusを取得するAPI"
+      operationId: "GetHealthLiveness"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "Liveness statusの取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckStatus"
+  /health/readiness:
+    get:
+      tags:
+        - "GetHealthReadiness"
+      summary: "Get Readiness Status"
+      description: "readiness statusを取得するAPI"
+      operationId: "GetHealthReadiness"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "Readiness statusの取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheckStatus"
+  /v1alpha1/applications:
+    get:
+      tags:
+        - "GetApplications"
+      summary: "Get Applications"
+      description: "アプリケーション一覧を取得するAPI"
+      operationId: "GetApplications"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "アプリケーション一覧の取得成功"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Application"
+  /v1alpha1/applications/{application_id}:
+    get:
+      tags:
+        - "GetApplication"
+      summary: "Get Application"
+      description: "特定のアプリケーションを取得するAPI"
+      operationId: "GetApplication"
+      parameters:
+        - name: "application_id"
+          in: "path"
+          description: "アプリケーションID(display_id)"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "アプリケーションの取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      required:
+        - code
+        - message
+    HealthCheckStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Application:
+      type: object
+      properties:
+        id:
+          type: string
+        description:
+          type: string
+        display_id:
+          type: string
+        repository_url:
+          type: string
+        appconfig_path:
+          type: string
+        appconfig_branch:
+          type: string
+      required:
+        - id
+        - display_id
+        - repository_url
+        - appconfig_path
+        - appconfig_branch

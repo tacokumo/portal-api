@@ -145,16 +145,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					}
 
 					// Param: "name"
-					// Leaf parameter, slashes are prohibited
+					// Match until "/"
 					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
+					if idx < 0 {
+						idx = len(elem)
 					}
-					args[0] = elem
-					elem = ""
+					args[0] = elem[:idx]
+					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						// Leaf node.
 						switch r.Method {
 						case "GET":
 							s.handleGetApplicationRequest([1]string{
@@ -165,6 +164,38 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						}
 
 						return
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/secret"
+
+						if l := len("/secret"); len(elem) >= l && elem[0:l] == "/secret" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch r.Method {
+							case "GET":
+								s.handleGetApplicationSecretRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							case "POST":
+								s.handleCreateApplicationSecretRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							case "PUT":
+								s.handleUpdateApplicationSecretRequest([1]string{
+									args[0],
+								}, elemIsEscaped, w, r)
+							default:
+								s.notAllowed(w, r, "GET,POST,PUT")
+							}
+
+							return
+						}
+
 					}
 
 				}
@@ -375,16 +406,15 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					}
 
 					// Param: "name"
-					// Leaf parameter, slashes are prohibited
+					// Match until "/"
 					idx := strings.IndexByte(elem, '/')
-					if idx >= 0 {
-						break
+					if idx < 0 {
+						idx = len(elem)
 					}
-					args[0] = elem
-					elem = ""
+					args[0] = elem[:idx]
+					elem = elem[idx:]
 
 					if len(elem) == 0 {
-						// Leaf node.
 						switch method {
 						case "GET":
 							r.name = GetApplicationOperation
@@ -398,6 +428,51 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						default:
 							return
 						}
+					}
+					switch elem[0] {
+					case '/': // Prefix: "/secret"
+
+						if l := len("/secret"); len(elem) >= l && elem[0:l] == "/secret" {
+							elem = elem[l:]
+						} else {
+							break
+						}
+
+						if len(elem) == 0 {
+							// Leaf node.
+							switch method {
+							case "GET":
+								r.name = GetApplicationSecretOperation
+								r.summary = "Get Application Secret"
+								r.operationID = "GetApplicationSecret"
+								r.operationGroup = ""
+								r.pathPattern = "/v1alpha1/applications/{name}/secret"
+								r.args = args
+								r.count = 1
+								return r, true
+							case "POST":
+								r.name = CreateApplicationSecretOperation
+								r.summary = "Create Application Secret"
+								r.operationID = "CreateApplicationSecret"
+								r.operationGroup = ""
+								r.pathPattern = "/v1alpha1/applications/{name}/secret"
+								r.args = args
+								r.count = 1
+								return r, true
+							case "PUT":
+								r.name = UpdateApplicationSecretOperation
+								r.summary = "Update Application Secret"
+								r.operationID = "UpdateApplicationSecret"
+								r.operationGroup = ""
+								r.pathPattern = "/v1alpha1/applications/{name}/secret"
+								r.args = args
+								r.count = 1
+								return r, true
+							default:
+								return
+							}
+						}
+
 					}
 
 				}

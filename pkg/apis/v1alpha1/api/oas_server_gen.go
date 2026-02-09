@@ -14,12 +14,24 @@ type Handler interface {
 	//
 	// POST /v1alpha1/applications
 	CreateApplication(ctx context.Context, req *CreateApplicationRequest) (*Application, error)
+	// CreateApplicationSecret implements CreateApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを作成するAPI.
+	//
+	// POST /v1alpha1/applications/{name}/secret
+	CreateApplicationSecret(ctx context.Context, req *CreateSecretRequest, params CreateApplicationSecretParams) (*Secret, error)
 	// GetApplication implements GetApplication operation.
 	//
 	// 特定のアプリケーションを取得するAPI.
 	//
 	// GET /v1alpha1/applications/{name}
 	GetApplication(ctx context.Context, params GetApplicationParams) (*Application, error)
+	// GetApplicationSecret implements GetApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを取得するAPI.
+	//
+	// GET /v1alpha1/applications/{name}/secret
+	GetApplicationSecret(ctx context.Context, params GetApplicationSecretParams) (*Secret, error)
 	// GetApplications implements GetApplications operation.
 	//
 	// アプリケーション一覧を取得するAPI.
@@ -38,6 +50,12 @@ type Handler interface {
 	//
 	// GET /health/readiness
 	GetHealthReadiness(ctx context.Context) (*HealthCheckStatus, error)
+	// UpdateApplicationSecret implements UpdateApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを更新するAPI.
+	//
+	// PUT /v1alpha1/applications/{name}/secret
+	UpdateApplicationSecret(ctx context.Context, req *CreateSecretRequest, params UpdateApplicationSecretParams) (*Secret, error)
 	// NewError creates *ErrorStatusCode from error returned by handler.
 	//
 	// Used for common default response.

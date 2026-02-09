@@ -33,12 +33,24 @@ type Invoker interface {
 	//
 	// POST /v1alpha1/applications
 	CreateApplication(ctx context.Context, request *CreateApplicationRequest) (*Application, error)
+	// CreateApplicationSecret invokes CreateApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを作成するAPI.
+	//
+	// POST /v1alpha1/applications/{name}/secret
+	CreateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params CreateApplicationSecretParams) (*Secret, error)
 	// GetApplication invokes GetApplication operation.
 	//
 	// 特定のアプリケーションを取得するAPI.
 	//
 	// GET /v1alpha1/applications/{name}
 	GetApplication(ctx context.Context, params GetApplicationParams) (*Application, error)
+	// GetApplicationSecret invokes GetApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを取得するAPI.
+	//
+	// GET /v1alpha1/applications/{name}/secret
+	GetApplicationSecret(ctx context.Context, params GetApplicationSecretParams) (*Secret, error)
 	// GetApplications invokes GetApplications operation.
 	//
 	// アプリケーション一覧を取得するAPI.
@@ -57,6 +69,12 @@ type Invoker interface {
 	//
 	// GET /health/readiness
 	GetHealthReadiness(ctx context.Context) (*HealthCheckStatus, error)
+	// UpdateApplicationSecret invokes UpdateApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを更新するAPI.
+	//
+	// PUT /v1alpha1/applications/{name}/secret
+	UpdateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params UpdateApplicationSecretParams) (*Secret, error)
 }
 
 // Client implements OAS client.
@@ -182,6 +200,101 @@ func (c *Client) sendCreateApplication(ctx context.Context, request *CreateAppli
 	return result, nil
 }
 
+// CreateApplicationSecret invokes CreateApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを作成するAPI.
+//
+// POST /v1alpha1/applications/{name}/secret
+func (c *Client) CreateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params CreateApplicationSecretParams) (*Secret, error) {
+	res, err := c.sendCreateApplicationSecret(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendCreateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params CreateApplicationSecretParams) (res *Secret, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("CreateApplicationSecret"),
+		semconv.HTTPRequestMethodKey.String("POST"),
+		semconv.URLTemplateKey.String("/v1alpha1/applications/{name}/secret"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, CreateApplicationSecretOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/v1alpha1/applications/"
+	{
+		// Encode "name" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "name",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.Name))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/secret"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCreateApplicationSecretRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeCreateApplicationSecretResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
 // GetApplication invokes GetApplication operation.
 //
 // 特定のアプリケーションを取得するAPI.
@@ -266,6 +379,98 @@ func (c *Client) sendGetApplication(ctx context.Context, params GetApplicationPa
 
 	stage = "DecodeResponse"
 	result, err := decodeGetApplicationResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// GetApplicationSecret invokes GetApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを取得するAPI.
+//
+// GET /v1alpha1/applications/{name}/secret
+func (c *Client) GetApplicationSecret(ctx context.Context, params GetApplicationSecretParams) (*Secret, error) {
+	res, err := c.sendGetApplicationSecret(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendGetApplicationSecret(ctx context.Context, params GetApplicationSecretParams) (res *Secret, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("GetApplicationSecret"),
+		semconv.HTTPRequestMethodKey.String("GET"),
+		semconv.URLTemplateKey.String("/v1alpha1/applications/{name}/secret"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, GetApplicationSecretOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/v1alpha1/applications/"
+	{
+		// Encode "name" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "name",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.Name))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/secret"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeGetApplicationSecretResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -485,6 +690,101 @@ func (c *Client) sendGetHealthReadiness(ctx context.Context) (res *HealthCheckSt
 
 	stage = "DecodeResponse"
 	result, err := decodeGetHealthReadinessResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// UpdateApplicationSecret invokes UpdateApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを更新するAPI.
+//
+// PUT /v1alpha1/applications/{name}/secret
+func (c *Client) UpdateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params UpdateApplicationSecretParams) (*Secret, error) {
+	res, err := c.sendUpdateApplicationSecret(ctx, request, params)
+	return res, err
+}
+
+func (c *Client) sendUpdateApplicationSecret(ctx context.Context, request *CreateSecretRequest, params UpdateApplicationSecretParams) (res *Secret, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("UpdateApplicationSecret"),
+		semconv.HTTPRequestMethodKey.String("PUT"),
+		semconv.URLTemplateKey.String("/v1alpha1/applications/{name}/secret"),
+	}
+	otelAttrs = append(otelAttrs, c.cfg.Attributes...)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(elapsedDuration)/float64(time.Millisecond), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, UpdateApplicationSecretOperation,
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/v1alpha1/applications/"
+	{
+		// Encode "name" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "name",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.Name))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/secret"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "PUT", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeUpdateApplicationSecretRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeUpdateApplicationSecretResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

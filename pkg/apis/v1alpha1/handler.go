@@ -13,14 +13,16 @@ import (
 type Handler struct {
 	*HealthCheckService
 	*ApplicationService
+	*ApplicationSecretService
 }
 
 func NewHandler(
 	cfg *config.Config,
 	client client.Client) *Handler {
 	return &Handler{
-		HealthCheckService: &HealthCheckService{},
-		ApplicationService: &ApplicationService{config: cfg, client: client},
+		HealthCheckService:       &HealthCheckService{},
+		ApplicationService:       &ApplicationService{config: cfg, client: client},
+		ApplicationSecretService: NewApplicationSecretService(cfg, client),
 	}
 }
 

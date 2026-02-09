@@ -14,6 +14,72 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
+// CreateApplicationSecretParams is parameters of CreateApplicationSecret operation.
+type CreateApplicationSecretParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackCreateApplicationSecretParams(packed middleware.Parameters) (params CreateApplicationSecretParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeCreateApplicationSecretParams(args [1]string, argsEscaped bool, r *http.Request) (params CreateApplicationSecretParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetApplicationParams is parameters of GetApplication operation.
 type GetApplicationParams struct {
 	// アプリケーション名.
@@ -32,6 +98,138 @@ func unpackGetApplicationParams(packed middleware.Parameters) (params GetApplica
 }
 
 func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Request) (params GetApplicationParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// GetApplicationSecretParams is parameters of GetApplicationSecret operation.
+type GetApplicationSecretParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackGetApplicationSecretParams(packed middleware.Parameters) (params GetApplicationSecretParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeGetApplicationSecretParams(args [1]string, argsEscaped bool, r *http.Request) (params GetApplicationSecretParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// UpdateApplicationSecretParams is parameters of UpdateApplicationSecret operation.
+type UpdateApplicationSecretParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackUpdateApplicationSecretParams(packed middleware.Parameters) (params UpdateApplicationSecretParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeUpdateApplicationSecretParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateApplicationSecretParams, _ error) {
 	// Decode path: name.
 	if err := func() error {
 		param := args[0]

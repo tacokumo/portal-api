@@ -22,12 +22,30 @@ func (UnimplementedHandler) CreateApplication(ctx context.Context, req *CreateAp
 	return r, ht.ErrNotImplemented
 }
 
+// CreateApplicationSecret implements CreateApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを作成するAPI.
+//
+// POST /v1alpha1/applications/{name}/secret
+func (UnimplementedHandler) CreateApplicationSecret(ctx context.Context, req *CreateSecretRequest, params CreateApplicationSecretParams) (r *Secret, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetApplication implements GetApplication operation.
 //
 // 特定のアプリケーションを取得するAPI.
 //
 // GET /v1alpha1/applications/{name}
 func (UnimplementedHandler) GetApplication(ctx context.Context, params GetApplicationParams) (r *Application, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GetApplicationSecret implements GetApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを取得するAPI.
+//
+// GET /v1alpha1/applications/{name}/secret
+func (UnimplementedHandler) GetApplicationSecret(ctx context.Context, params GetApplicationSecretParams) (r *Secret, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
@@ -55,6 +73,15 @@ func (UnimplementedHandler) GetHealthLiveness(ctx context.Context) (r *HealthChe
 //
 // GET /health/readiness
 func (UnimplementedHandler) GetHealthReadiness(ctx context.Context) (r *HealthCheckStatus, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// UpdateApplicationSecret implements UpdateApplicationSecret operation.
+//
+// 特定のアプリケーションのシークレットを更新するAPI.
+//
+// PUT /v1alpha1/applications/{name}/secret
+func (UnimplementedHandler) UpdateApplicationSecret(ctx context.Context, req *CreateSecretRequest, params UpdateApplicationSecretParams) (r *Secret, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

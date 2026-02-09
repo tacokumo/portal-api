@@ -6,9 +6,12 @@ package api
 type OperationName = string
 
 const (
-	CreateApplicationOperation  OperationName = "CreateApplication"
-	GetApplicationOperation     OperationName = "GetApplication"
-	GetApplicationsOperation    OperationName = "GetApplications"
-	GetHealthLivenessOperation  OperationName = "GetHealthLiveness"
-	GetHealthReadinessOperation OperationName = "GetHealthReadiness"
+	CreateApplicationOperation       OperationName = "CreateApplication"
+	CreateApplicationSecretOperation OperationName = "CreateApplicationSecret"
+	GetApplicationOperation          OperationName = "GetApplication"
+	GetApplicationSecretOperation    OperationName = "GetApplicationSecret"
+	GetApplicationsOperation         OperationName = "GetApplications"
+	GetHealthLivenessOperation       OperationName = "GetHealthLiveness"
+	GetHealthReadinessOperation      OperationName = "GetHealthReadiness"
+	UpdateApplicationSecretOperation OperationName = "UpdateApplicationSecret"
 )

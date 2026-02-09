@@ -130,6 +130,99 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Application"
+  /v1alpha1/applications/{name}/secret:
+    get:
+      tags:
+        - "applications"
+      summary: "Get Application Secret"
+      description: "特定のアプリケーションのシークレットを取得するAPI"
+      operationId: "GetApplicationSecret"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "アプリケーションシークレットの取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+    post:
+      tags:
+        - "applications"
+      summary: "Create Application Secret"
+      description: "特定のアプリケーションのシークレットを作成するAPI"
+      operationId: "CreateApplicationSecret"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "作成するシークレットの情報"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSecretRequest"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '201':
+          description: "アプリケーションシークレットの作成成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
+    put:
+      tags:
+        - "applications"
+      summary: "Update Application Secret"
+      description: "特定のアプリケーションのシークレットを更新するAPI"
+      operationId: "UpdateApplicationSecret"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "更新するシークレットの情報"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSecretRequest"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '200':
+          description: "アプリケーションシークレットの更新成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Secret"
 components:
   schemas:
     Error:
@@ -192,3 +285,34 @@ components:
         - repository_url
         - appconfig_path
         - appconfig_branch
+    SecretItem:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      required:
+        - key
+        - value
+    Secret:
+      type: object
+      properties:
+        id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecretItem"
+      required:
+        - id
+        - items
+    CreateSecretRequest:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SecretItem"
+      required: 
+        - items

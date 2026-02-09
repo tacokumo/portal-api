@@ -150,6 +150,21 @@ func (s *CreateApplicationRequest) SetAppconfigBranch(val string) {
 	s.AppconfigBranch = val
 }
 
+// Ref: #/components/schemas/CreateSecretRequest
+type CreateSecretRequest struct {
+	Items []SecretItem `json:"items"`
+}
+
+// GetItems returns the value of Items.
+func (s *CreateSecretRequest) GetItems() []SecretItem {
+	return s.Items
+}
+
+// SetItems sets the value of Items.
+func (s *CreateSecretRequest) SetItems(val []SecretItem) {
+	s.Items = val
+}
+
 // Ref: #/components/schemas/Error
 type Error struct {
 	Code    int32  `json:"code"`
@@ -261,4 +276,56 @@ func (o OptString) Or(d string) string {
 		return v
 	}
 	return d
+}
+
+// Ref: #/components/schemas/Secret
+type Secret struct {
+	ID    string       `json:"id"`
+	Items []SecretItem `json:"items"`
+}
+
+// GetID returns the value of ID.
+func (s *Secret) GetID() string {
+	return s.ID
+}
+
+// GetItems returns the value of Items.
+func (s *Secret) GetItems() []SecretItem {
+	return s.Items
+}
+
+// SetID sets the value of ID.
+func (s *Secret) SetID(val string) {
+	s.ID = val
+}
+
+// SetItems sets the value of Items.
+func (s *Secret) SetItems(val []SecretItem) {
+	s.Items = val
+}
+
+// Ref: #/components/schemas/SecretItem
+type SecretItem struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// GetKey returns the value of Key.
+func (s *SecretItem) GetKey() string {
+	return s.Key
+}
+
+// GetValue returns the value of Value.
+func (s *SecretItem) GetValue() string {
+	return s.Value
+}
+
+// SetKey sets the value of Key.
+func (s *SecretItem) SetKey(val string) {
+	s.Key = val
+}
+
+// SetValue sets the value of Value.
+func (s *SecretItem) SetValue(val string) {
+	s.Value = val
 }

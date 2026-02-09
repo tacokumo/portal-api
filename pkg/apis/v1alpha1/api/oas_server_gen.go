@@ -8,11 +8,17 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
+	// CreateApplication implements CreateApplication operation.
+	//
+	// アプリケーションを作成するAPI.
+	//
+	// POST /v1alpha1/applications
+	CreateApplication(ctx context.Context, req *CreateApplicationRequest) (*Application, error)
 	// GetApplication implements GetApplication operation.
 	//
 	// 特定のアプリケーションを取得するAPI.
 	//
-	// GET /v1alpha1/applications/{application_id}
+	// GET /v1alpha1/applications/{name}
 	GetApplication(ctx context.Context, params GetApplicationParams) (*Application, error)
 	// GetApplications implements GetApplications operation.
 	//

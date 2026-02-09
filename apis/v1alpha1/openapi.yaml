@@ -9,16 +9,16 @@ info:
 servers: []
 security: []
 tags:
-- name: "GetHealthLiveness"
-  description: "liveness statusを取得するAPI"
-- name: "GetHealthReadiness"
-  description: "readiness statusを取得するAPI"
+- name: "applications"
+  description: "アプリケーション関連のAPI"
+- name: "health"
+  description: "ヘルスチェック関連のAPI"
 externalDocs: {}
 paths:
   /health/liveness:
     get:
       tags:
-        - "GetHealthLiveness"
+        - "health"
       summary: "Get Liveness Status"
       description: "liveness statusを取得するAPI"
       operationId: "GetHealthLiveness"
@@ -38,7 +38,7 @@ paths:
   /health/readiness:
     get:
       tags:
-        - "GetHealthReadiness"
+        - "health"
       summary: "Get Readiness Status"
       description: "readiness statusを取得するAPI"
       operationId: "GetHealthReadiness"
@@ -58,7 +58,7 @@ paths:
   /v1alpha1/applications:
     get:
       tags:
-        - "GetApplications"
+        - "applications"
       summary: "Get Applications"
       description: "アプリケーション一覧を取得するAPI"
       operationId: "GetApplications"
@@ -77,17 +77,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Application"
-  /v1alpha1/applications/{application_id}:
+    post:
+      tags:
+        - "applications"
+      summary: "Create Application"
+      description: "アプリケーションを作成するAPI"
+      operationId: "CreateApplication"
+      requestBody:
+        description: "作成するアプリケーションの情報"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateApplicationRequest"
+      responses:
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '201':
+          description: "アプリケーションの作成成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+  /v1alpha1/applications/{name}:
     get:
       tags:
-        - "GetApplication"
+        - "applications"
       summary: "Get Application"
       description: "特定のアプリケーションを取得するAPI"
       operationId: "GetApplication"
       parameters:
-        - name: "application_id"
+        - name: "name"
           in: "path"
-          description: "アプリケーションID(display_id)"
+          description: "アプリケーション名"
           required: true
           schema:
             type: "string"
@@ -129,6 +155,8 @@ components:
       properties:
         id:
           type: string
+        name:
+          type: string
         description:
           type: string
         display_id:
@@ -141,7 +169,26 @@ components:
           type: string
       required:
         - id
+        - name
         - display_id
+        - repository_url
+        - appconfig_path
+        - appconfig_branch
+    CreateApplicationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        repository_url:
+          type: string
+        appconfig_path:
+          type: string
+        appconfig_branch:
+          type: string
+      required:
+        - name
         - repository_url
         - appconfig_path
         - appconfig_branch

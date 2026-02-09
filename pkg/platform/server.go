@@ -8,9 +8,8 @@ import (
 	"github.com/labstack/echo/v5"
 	"github.com/tacokumo/portal-api/pkg/apis/v1alpha1"
 	"github.com/tacokumo/portal-api/pkg/apis/v1alpha1/api"
-	tacokumov1alpha1 "github.com/tacokumo/portal-controller-kubernetes/api/v1alpha1"
-	"k8s.io/apimachinery/pkg/runtime"
-	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	"github.com/tacokumo/portal-api/pkg/config"
+	"github.com/tacokumo/portal-api/pkg/k8sclient"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -32,13 +31,19 @@ func (s *Server) Start(ctx context.Context) error {
 		GracefulTimeout: 5 * time.Second,
 	}
 
+	cfg := config.LoadFromEnv()
+	if err := cfg.Validate(); err != nil {
+		s.logger.ErrorContext(ctx, "invalid configuration", "error", err)
+		return err
+	}
+
 	restConfig, err := rest.InClusterConfig()
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to get in-cluster config", "error", err)
 		return err
 	}
 
-	scheme, err := newScheme()
+	scheme, err := k8sclient.NewScheme()
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create scheme", "error", err)
 		return err
@@ -50,7 +55,7 @@ func (s *Server) Start(ctx context.Context) error {
 		s.logger.ErrorContext(ctx, "failed to create k8s client", "error", err)
 		return err
 	}
-	apiServer, err := api.NewServer(v1alpha1.NewHandler(k8sClient))
+	apiServer, err := api.NewServer(v1alpha1.NewHandler(cfg, k8sClient))
 	if err != nil {
 		s.logger.ErrorContext(ctx, "failed to create API server", "error", err)
 		return err
@@ -62,15 +67,4 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-func newScheme() (*runtime.Scheme, error) {
-	s := runtime.NewScheme()
-	if err := clientgoscheme.AddToScheme(s); err != nil {
-		return nil, err
-	}
-	if err := tacokumov1alpha1.AddToScheme(s); err != nil {
-		return nil, err
-	}
-	return s, nil
 }

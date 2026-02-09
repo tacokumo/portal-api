@@ -127,8 +127,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					switch r.Method {
 					case "GET":
 						s.handleGetApplicationsRequest([0]string{}, elemIsEscaped, w, r)
+					case "POST":
+						s.handleCreateApplicationRequest([0]string{}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "GET")
+						s.notAllowed(w, r, "GET,POST")
 					}
 
 					return
@@ -142,7 +144,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 
-					// Param: "application_id"
+					// Param: "name"
 					// Leaf parameter, slashes are prohibited
 					idx := strings.IndexByte(elem, '/')
 					if idx >= 0 {
@@ -350,6 +352,15 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						r.args = args
 						r.count = 0
 						return r, true
+					case "POST":
+						r.name = CreateApplicationOperation
+						r.summary = "Create Application"
+						r.operationID = "CreateApplication"
+						r.operationGroup = ""
+						r.pathPattern = "/v1alpha1/applications"
+						r.args = args
+						r.count = 0
+						return r, true
 					default:
 						return
 					}
@@ -363,7 +374,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						break
 					}
 
-					// Param: "application_id"
+					// Param: "name"
 					// Leaf parameter, slashes are prohibited
 					idx := strings.IndexByte(elem, '/')
 					if idx >= 0 {
@@ -380,7 +391,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							r.summary = "Get Application"
 							r.operationID = "GetApplication"
 							r.operationGroup = ""
-							r.pathPattern = "/v1alpha1/applications/{application_id}"
+							r.pathPattern = "/v1alpha1/applications/{name}"
 							r.args = args
 							r.count = 1
 							return r, true

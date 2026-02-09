@@ -13,6 +13,7 @@ func (s *ErrorStatusCode) Error() string {
 // Ref: #/components/schemas/Application
 type Application struct {
 	ID              string    `json:"id"`
+	Name            string    `json:"name"`
 	Description     OptString `json:"description"`
 	DisplayID       string    `json:"display_id"`
 	RepositoryURL   string    `json:"repository_url"`
@@ -23,6 +24,11 @@ type Application struct {
 // GetID returns the value of ID.
 func (s *Application) GetID() string {
 	return s.ID
+}
+
+// GetName returns the value of Name.
+func (s *Application) GetName() string {
+	return s.Name
 }
 
 // GetDescription returns the value of Description.
@@ -55,6 +61,11 @@ func (s *Application) SetID(val string) {
 	s.ID = val
 }
 
+// SetName sets the value of Name.
+func (s *Application) SetName(val string) {
+	s.Name = val
+}
+
 // SetDescription sets the value of Description.
 func (s *Application) SetDescription(val OptString) {
 	s.Description = val
@@ -77,6 +88,65 @@ func (s *Application) SetAppconfigPath(val string) {
 
 // SetAppconfigBranch sets the value of AppconfigBranch.
 func (s *Application) SetAppconfigBranch(val string) {
+	s.AppconfigBranch = val
+}
+
+// Ref: #/components/schemas/CreateApplicationRequest
+type CreateApplicationRequest struct {
+	Name            string    `json:"name"`
+	Description     OptString `json:"description"`
+	RepositoryURL   string    `json:"repository_url"`
+	AppconfigPath   string    `json:"appconfig_path"`
+	AppconfigBranch string    `json:"appconfig_branch"`
+}
+
+// GetName returns the value of Name.
+func (s *CreateApplicationRequest) GetName() string {
+	return s.Name
+}
+
+// GetDescription returns the value of Description.
+func (s *CreateApplicationRequest) GetDescription() OptString {
+	return s.Description
+}
+
+// GetRepositoryURL returns the value of RepositoryURL.
+func (s *CreateApplicationRequest) GetRepositoryURL() string {
+	return s.RepositoryURL
+}
+
+// GetAppconfigPath returns the value of AppconfigPath.
+func (s *CreateApplicationRequest) GetAppconfigPath() string {
+	return s.AppconfigPath
+}
+
+// GetAppconfigBranch returns the value of AppconfigBranch.
+func (s *CreateApplicationRequest) GetAppconfigBranch() string {
+	return s.AppconfigBranch
+}
+
+// SetName sets the value of Name.
+func (s *CreateApplicationRequest) SetName(val string) {
+	s.Name = val
+}
+
+// SetDescription sets the value of Description.
+func (s *CreateApplicationRequest) SetDescription(val OptString) {
+	s.Description = val
+}
+
+// SetRepositoryURL sets the value of RepositoryURL.
+func (s *CreateApplicationRequest) SetRepositoryURL(val string) {
+	s.RepositoryURL = val
+}
+
+// SetAppconfigPath sets the value of AppconfigPath.
+func (s *CreateApplicationRequest) SetAppconfigPath(val string) {
+	s.AppconfigPath = val
+}
+
+// SetAppconfigBranch sets the value of AppconfigBranch.
+func (s *CreateApplicationRequest) SetAppconfigBranch(val string) {
 	s.AppconfigBranch = val
 }
 

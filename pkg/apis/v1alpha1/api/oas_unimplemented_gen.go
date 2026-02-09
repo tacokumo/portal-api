@@ -13,11 +13,20 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
+// CreateApplication implements CreateApplication operation.
+//
+// アプリケーションを作成するAPI.
+//
+// POST /v1alpha1/applications
+func (UnimplementedHandler) CreateApplication(ctx context.Context, req *CreateApplicationRequest) (r *Application, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetApplication implements GetApplication operation.
 //
 // 特定のアプリケーションを取得するAPI.
 //
-// GET /v1alpha1/applications/{application_id}
+// GET /v1alpha1/applications/{name}
 func (UnimplementedHandler) GetApplication(ctx context.Context, params GetApplicationParams) (r *Application, _ error) {
 	return r, ht.ErrNotImplemented
 }

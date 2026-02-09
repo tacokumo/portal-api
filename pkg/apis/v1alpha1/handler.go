@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/tacokumo/portal-api/pkg/apis/v1alpha1/api"
+	"github.com/tacokumo/portal-api/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -14,10 +15,12 @@ type Handler struct {
 	*ApplicationService
 }
 
-func NewHandler(client client.Client) *Handler {
+func NewHandler(
+	cfg *config.Config,
+	client client.Client) *Handler {
 	return &Handler{
 		HealthCheckService: &HealthCheckService{},
-		ApplicationService: &ApplicationService{client: client},
+		ApplicationService: &ApplicationService{config: cfg, client: client},
 	}
 }
 

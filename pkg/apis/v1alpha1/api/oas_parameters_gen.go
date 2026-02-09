@@ -16,23 +16,23 @@ import (
 
 // GetApplicationParams is parameters of GetApplication operation.
 type GetApplicationParams struct {
-	// アプリケーションID.
-	ApplicationID string
+	// アプリケーション名.
+	Name string
 }
 
 func unpackGetApplicationParams(packed middleware.Parameters) (params GetApplicationParams) {
 	{
 		key := middleware.ParameterKey{
-			Name: "application_id",
+			Name: "name",
 			In:   "path",
 		}
-		params.ApplicationID = packed[key].(string)
+		params.Name = packed[key].(string)
 	}
 	return params
 }
 
 func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Request) (params GetApplicationParams, _ error) {
-	// Decode path: application_id.
+	// Decode path: name.
 	if err := func() error {
 		param := args[0]
 		if argsEscaped {
@@ -44,7 +44,7 @@ func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Reques
 		}
 		if len(param) > 0 {
 			d := uri.NewPathDecoder(uri.PathDecoderConfig{
-				Param:   "application_id",
+				Param:   "name",
 				Value:   param,
 				Style:   uri.PathStyleSimple,
 				Explode: false,
@@ -61,7 +61,7 @@ func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Reques
 					return err
 				}
 
-				params.ApplicationID = c
+				params.Name = c
 				return nil
 			}(); err != nil {
 				return err
@@ -72,7 +72,7 @@ func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Reques
 		return nil
 	}(); err != nil {
 		return params, &ogenerrors.DecodeParamError{
-			Name: "application_id",
+			Name: "name",
 			In:   "path",
 			Err:  err,
 		}

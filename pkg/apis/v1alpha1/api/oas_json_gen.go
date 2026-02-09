@@ -25,6 +25,10 @@ func (s *Application) encodeFields(e *jx.Encoder) {
 		e.Str(s.ID)
 	}
 	{
+		e.FieldStart("name")
+		e.Str(s.Name)
+	}
+	{
 		if s.Description.Set {
 			e.FieldStart("description")
 			s.Description.Encode(e)
@@ -48,13 +52,14 @@ func (s *Application) encodeFields(e *jx.Encoder) {
 	}
 }
 
-var jsonFieldsNameOfApplication = [6]string{
+var jsonFieldsNameOfApplication = [7]string{
 	0: "id",
-	1: "description",
-	2: "display_id",
-	3: "repository_url",
-	4: "appconfig_path",
-	5: "appconfig_branch",
+	1: "name",
+	2: "description",
+	3: "display_id",
+	4: "repository_url",
+	5: "appconfig_path",
+	6: "appconfig_branch",
 }
 
 // Decode decodes Application from json.
@@ -78,6 +83,18 @@ func (s *Application) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"id\"")
 			}
+		case "name":
+			requiredBitSet[0] |= 1 << 1
+			if err := func() error {
+				v, err := d.Str()
+				s.Name = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"name\"")
+			}
 		case "description":
 			if err := func() error {
 				s.Description.Reset()
@@ -89,7 +106,7 @@ func (s *Application) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"description\"")
 			}
 		case "display_id":
-			requiredBitSet[0] |= 1 << 2
+			requiredBitSet[0] |= 1 << 3
 			if err := func() error {
 				v, err := d.Str()
 				s.DisplayID = string(v)
@@ -101,7 +118,7 @@ func (s *Application) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"display_id\"")
 			}
 		case "repository_url":
-			requiredBitSet[0] |= 1 << 3
+			requiredBitSet[0] |= 1 << 4
 			if err := func() error {
 				v, err := d.Str()
 				s.RepositoryURL = string(v)
@@ -113,7 +130,7 @@ func (s *Application) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"repository_url\"")
 			}
 		case "appconfig_path":
-			requiredBitSet[0] |= 1 << 4
+			requiredBitSet[0] |= 1 << 5
 			if err := func() error {
 				v, err := d.Str()
 				s.AppconfigPath = string(v)
@@ -125,7 +142,7 @@ func (s *Application) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"appconfig_path\"")
 			}
 		case "appconfig_branch":
-			requiredBitSet[0] |= 1 << 5
+			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
 				v, err := d.Str()
 				s.AppconfigBranch = string(v)
@@ -146,7 +163,7 @@ func (s *Application) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00111101,
+		0b01111011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -188,6 +205,170 @@ func (s *Application) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *Application) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode implements json.Marshaler.
+func (s *CreateApplicationRequest) Encode(e *jx.Encoder) {
+	e.ObjStart()
+	s.encodeFields(e)
+	e.ObjEnd()
+}
+
+// encodeFields encodes fields.
+func (s *CreateApplicationRequest) encodeFields(e *jx.Encoder) {
+	{
+		e.FieldStart("name")
+		e.Str(s.Name)
+	}
+	{
+		if s.Description.Set {
+			e.FieldStart("description")
+			s.Description.Encode(e)
+		}
+	}
+	{
+		e.FieldStart("repository_url")
+		e.Str(s.RepositoryURL)
+	}
+	{
+		e.FieldStart("appconfig_path")
+		e.Str(s.AppconfigPath)
+	}
+	{
+		e.FieldStart("appconfig_branch")
+		e.Str(s.AppconfigBranch)
+	}
+}
+
+var jsonFieldsNameOfCreateApplicationRequest = [5]string{
+	0: "name",
+	1: "description",
+	2: "repository_url",
+	3: "appconfig_path",
+	4: "appconfig_branch",
+}
+
+// Decode decodes CreateApplicationRequest from json.
+func (s *CreateApplicationRequest) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode CreateApplicationRequest to nil")
+	}
+	var requiredBitSet [1]uint8
+
+	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
+		switch string(k) {
+		case "name":
+			requiredBitSet[0] |= 1 << 0
+			if err := func() error {
+				v, err := d.Str()
+				s.Name = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"name\"")
+			}
+		case "description":
+			if err := func() error {
+				s.Description.Reset()
+				if err := s.Description.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"description\"")
+			}
+		case "repository_url":
+			requiredBitSet[0] |= 1 << 2
+			if err := func() error {
+				v, err := d.Str()
+				s.RepositoryURL = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"repository_url\"")
+			}
+		case "appconfig_path":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				v, err := d.Str()
+				s.AppconfigPath = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"appconfig_path\"")
+			}
+		case "appconfig_branch":
+			requiredBitSet[0] |= 1 << 4
+			if err := func() error {
+				v, err := d.Str()
+				s.AppconfigBranch = string(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"appconfig_branch\"")
+			}
+		default:
+			return d.Skip()
+		}
+		return nil
+	}); err != nil {
+		return errors.Wrap(err, "decode CreateApplicationRequest")
+	}
+	// Validate required fields.
+	var failures []validate.FieldError
+	for i, mask := range [1]uint8{
+		0b00011101,
+	} {
+		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
+			// Mask only required fields and check equality to mask using XOR.
+			//
+			// If XOR result is not zero, result is not equal to expected, so some fields are missed.
+			// Bits of fields which would be set are actually bits of missed fields.
+			missed := bits.OnesCount8(result)
+			for bitN := 0; bitN < missed; bitN++ {
+				bitIdx := bits.TrailingZeros8(result)
+				fieldIdx := i*8 + bitIdx
+				var name string
+				if fieldIdx < len(jsonFieldsNameOfCreateApplicationRequest) {
+					name = jsonFieldsNameOfCreateApplicationRequest[fieldIdx]
+				} else {
+					name = strconv.Itoa(fieldIdx)
+				}
+				failures = append(failures, validate.FieldError{
+					Name:  name,
+					Error: validate.ErrFieldRequired,
+				})
+				// Reset bit.
+				result &^= 1 << bitIdx
+			}
+		}
+	}
+	if len(failures) > 0 {
+		return &validate.Error{Fields: failures}
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s *CreateApplicationRequest) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *CreateApplicationRequest) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

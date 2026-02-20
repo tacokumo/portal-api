@@ -38,5 +38,8 @@ func New() *cobra.Command {
 		SilenceUsage: true,
 	}
 
+	// サブコマンドを追加
+	cmd.AddCommand(newConfigCommand())
+
 	return cmd
 }

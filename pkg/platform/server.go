@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -26,15 +27,17 @@ func NewServer(logger *slog.Logger) *Server {
 
 func (s *Server) Start(ctx context.Context) error {
 	e := echo.New()
-	sc := echo.StartConfig{
-		Address:         ":1323",
-		GracefulTimeout: 5 * time.Second,
-	}
 
+	// 新しい設定システムを使用（フォールバックあり）
 	cfg := config.LoadFromEnv()
 	if err := cfg.Validate(); err != nil {
 		s.logger.ErrorContext(ctx, "invalid configuration", "error", err)
 		return err
+	}
+
+	sc := echo.StartConfig{
+		Address:         fmt.Sprintf(":%d", cfg.Server.Port),
+		GracefulTimeout: 5 * time.Second,
 	}
 
 	restConfig, err := rest.InClusterConfig()

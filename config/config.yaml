@@ -1,0 +1,33 @@
+# Portal API Configuration
+# 機密情報は環境変数で設定してください:
+#
+# 必須環境変数（認証機能使用時）:
+# - GITHUB_CLIENT_ID
+# - GITHUB_CLIENT_SECRET
+# - JWT_PRIVATE_KEY_PATH
+# - JWT_PUBLIC_KEY_PATH
+#
+# オプション環境変数:
+# - GITHUB_APP_ID
+# - GITHUB_APP_PRIVATE_KEY_PATH
+# - VALKEY_PASSWORD
+#
+
+portal_name: TACOKUMO Portal
+server:
+  port: 8080
+  log_level: info
+auth:
+  github:
+    oauth:
+      redirect_url: ""
+    app: {}
+  jwt:
+    access_token_duration: 1h0m0s
+    refresh_token_duration: 8h0m0s
+  valkey:
+    address: localhost:6379
+    db: 0
+security:
+  cors:
+    allowed_origins: []

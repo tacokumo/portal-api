@@ -1,0 +1,49 @@
+# Portal API 認証設定例
+# このファイルは設定のテンプレートです
+# 実際の本番環境では機密情報は環境変数で設定してください
+
+# サーバー設定
+server:
+  port: 8080
+  log_level: info
+
+# 認証設定
+auth:
+  # GitHub OAuth設定
+  github:
+    oauth:
+      # 環境変数で設定: GITHUB_CLIENT_ID
+      # client_id: "your-github-oauth-app-client-id"
+      # 環境変数で設定: GITHUB_CLIENT_SECRET
+      # client_secret: "your-github-oauth-app-client-secret"
+      redirect_url: "https://portal.tacokumo.com/auth/github/callback"
+
+    # GitHub App設定（GitHub Actions用）
+    app:
+      # 環境変数で設定: GITHUB_APP_ID
+      # app_id: "your-github-app-id"
+      # 環境変数で設定: GITHUB_APP_PRIVATE_KEY_PATH
+      # private_key_path: "/etc/secrets/github-app-private-key.pem"
+
+  # JWT設定
+  jwt:
+    # 環境変数で設定: JWT_PRIVATE_KEY_PATH
+    # private_key_path: "/etc/secrets/jwt-private-key.pem"
+    # 環境変数で設定: JWT_PUBLIC_KEY_PATH
+    # public_key_path: "/etc/secrets/jwt-public-key.pem"
+    access_token_duration: "1h"    # アクセストークン有効期限
+    refresh_token_duration: "8h"   # リフレッシュトークン有効期限
+
+  # Valkey (Redis互換) 設定
+  valkey:
+    address: "localhost:6379"
+    # 環境変数で設定: VALKEY_PASSWORD
+    # password: "your-valkey-password"
+    db: 0
+
+# セキュリティ設定
+security:
+  cors:
+    allowed_origins:
+      - "https://portal.tacokumo.com"
+      - "https://app.tacokumo.com"

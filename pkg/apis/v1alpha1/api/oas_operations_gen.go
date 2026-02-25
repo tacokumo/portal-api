@@ -13,5 +13,9 @@ const (
 	GetApplicationsOperation         OperationName = "GetApplications"
 	GetHealthLivenessOperation       OperationName = "GetHealthLiveness"
 	GetHealthReadinessOperation      OperationName = "GetHealthReadiness"
+	GitHubOAuthCallbackOperation     OperationName = "GitHubOAuthCallback"
+	GitHubOAuthLoginOperation        OperationName = "GitHubOAuthLogin"
+	LogoutOperation                  OperationName = "Logout"
+	RefreshTokenOperation            OperationName = "RefreshToken"
 	UpdateApplicationSecretOperation OperationName = "UpdateApplicationSecret"
 )

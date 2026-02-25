@@ -6,6 +6,9 @@ import (
 	"net/http"
 
 	"github.com/tacokumo/portal-api/pkg/apis/v1alpha1/api"
+	"github.com/tacokumo/portal-api/pkg/auth"
+	"github.com/tacokumo/portal-api/pkg/auth/github"
+	"github.com/tacokumo/portal-api/pkg/auth/session"
 	"github.com/tacokumo/portal-api/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -14,15 +17,28 @@ type Handler struct {
 	*HealthCheckService
 	*ApplicationService
 	*ApplicationSecretService
+	*AuthService
 }
 
 func NewHandler(
 	cfg *config.Config,
-	client client.Client) *Handler {
+	client client.Client,
+	jwtManager *auth.JWTManager,
+	sessionManager session.Manager,
+	githubClient github.AuthProvider,
+	organization string,
+) *Handler {
 	return &Handler{
 		HealthCheckService:       &HealthCheckService{},
 		ApplicationService:       &ApplicationService{config: cfg, client: client},
 		ApplicationSecretService: NewApplicationSecretService(cfg, client),
+		AuthService: NewAuthService(
+			cfg,
+			githubClient,
+			jwtManager,
+			sessionManager,
+			organization,
+		),
 	}
 }
 

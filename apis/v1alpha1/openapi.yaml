@@ -7,14 +7,141 @@ info:
     name: MIT
     url: https://opensource.org/licenses/MIT
 servers: []
-security: []
+security:
+  - BearerAuth: []
+  - CookieAuth: []
 tags:
 - name: "applications"
   description: "アプリケーション関連のAPI"
 - name: "health"
   description: "ヘルスチェック関連のAPI"
+- name: "auth"
+  description: "認証関連のAPI"
 externalDocs: {}
 paths:
+  /auth/github/login:
+    get:
+      tags:
+        - "auth"
+      summary: "GitHub OAuth Login"
+      description: "GitHub OAuthログインを開始するAPI"
+      operationId: "GitHubOAuthLogin"
+      security: []  # 認証不要
+      responses:
+        '302':
+          description: "GitHub OAuth認証サイトにリダイレクト"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/github/callback:
+    get:
+      tags:
+        - "auth"
+      summary: "GitHub OAuth Callback"
+      description: "GitHub OAuthコールバック処理API"
+      operationId: "GitHubOAuthCallback"
+      security: []  # 認証不要
+      parameters:
+        - name: "code"
+          in: "query"
+          description: "Authorization code"
+          required: true
+          schema:
+            type: "string"
+        - name: "state"
+          in: "query"
+          description: "OAuth state parameter"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '200':
+          description: "認証成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        '400':
+          description: "認証エラー"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/logout:
+    post:
+      tags:
+        - "auth"
+      summary: "Logout"
+      description: "ログアウト処理API"
+      operationId: "Logout"
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: "ログアウト成功"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                required:
+                  - success
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /auth/refresh:
+    post:
+      tags:
+        - "auth"
+      summary: "Token Refresh"
+      description: "JWT リフレッシュ処理API"
+      operationId: "RefreshToken"
+      security: []  # リフレッシュトークンで認証
+      requestBody:
+        description: "リフレッシュトークン"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+              required:
+                - refresh_token
+      responses:
+        '200':
+          description: "トークンリフレッシュ成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenPair"
+        '401':
+          description: "無効なリフレッシュトークン"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /health/liveness:
     get:
       tags:
@@ -22,6 +149,7 @@ paths:
       summary: "Get Liveness Status"
       description: "liveness statusを取得するAPI"
       operationId: "GetHealthLiveness"
+      security: []  # 認証不要
       responses:
         default:
           description: "デフォルトのレスポンス"
@@ -42,6 +170,7 @@ paths:
       summary: "Get Readiness Status"
       description: "readiness statusを取得するAPI"
       operationId: "GetHealthReadiness"
+      security: []  # 認証不要
       responses:
         default:
           description: "デフォルトのレスポンス"
@@ -224,6 +353,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Secret"
 components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "GitHub PAT or Installation Token"
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: portal_session
+      description: "OAuth JWT Cookie"
   schemas:
     Error:
       type: object
@@ -314,5 +454,52 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/SecretItem"
-      required: 
+      required:
         - items
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        login:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        teams:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - login
+        - teams
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        user:
+          $ref: "#/components/schemas/User"
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - success
+        - user
+        - expires_at
+    TokenPair:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+      required:
+        - access_token
+        - refresh_token
+        - expires_at

@@ -76,6 +76,42 @@ func (UnimplementedHandler) GetHealthReadiness(ctx context.Context) (r *HealthCh
 	return r, ht.ErrNotImplemented
 }
 
+// GitHubOAuthCallback implements GitHubOAuthCallback operation.
+//
+// GitHub OAuthコールバック処理API.
+//
+// GET /auth/github/callback
+func (UnimplementedHandler) GitHubOAuthCallback(ctx context.Context, params GitHubOAuthCallbackParams) (r GitHubOAuthCallbackRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// GitHubOAuthLogin implements GitHubOAuthLogin operation.
+//
+// GitHub OAuthログインを開始するAPI.
+//
+// GET /auth/github/login
+func (UnimplementedHandler) GitHubOAuthLogin(ctx context.Context) error {
+	return ht.ErrNotImplemented
+}
+
+// Logout implements Logout operation.
+//
+// ログアウト処理API.
+//
+// POST /auth/logout
+func (UnimplementedHandler) Logout(ctx context.Context) (r *LogoutOK, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// RefreshToken implements RefreshToken operation.
+//
+// JWT リフレッシュ処理API.
+//
+// POST /auth/refresh
+func (UnimplementedHandler) RefreshToken(ctx context.Context, req *RefreshTokenReq) (r RefreshTokenRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // UpdateApplicationSecret implements UpdateApplicationSecret operation.
 //
 // 特定のアプリケーションのシークレットを更新するAPI.

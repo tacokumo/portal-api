@@ -1,2 +1,40 @@
 bin/
 tools/
+
+# 環境設定ファイル
+.env
+.env.*
+!.env.*.example
+
+# 秘密鍵・認証情報
+secrets/
+*.pem
+*.key
+
+# Docker関連
+.docker/
+docker-compose.override.yml
+
+# 開発用ファイル
+tmp/
+logs/
+*.log
+build-errors.log
+
+# Air（ホットリロードツール）
+.air.toml.local
+
+# IDE/エディタ設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# テスト・カバレッジ
+coverage.out
+*.test

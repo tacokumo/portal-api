@@ -50,6 +50,30 @@ type Handler interface {
 	//
 	// GET /health/readiness
 	GetHealthReadiness(ctx context.Context) (*HealthCheckStatus, error)
+	// GitHubOAuthCallback implements GitHubOAuthCallback operation.
+	//
+	// GitHub OAuthコールバック処理API.
+	//
+	// GET /auth/github/callback
+	GitHubOAuthCallback(ctx context.Context, params GitHubOAuthCallbackParams) (GitHubOAuthCallbackRes, error)
+	// GitHubOAuthLogin implements GitHubOAuthLogin operation.
+	//
+	// GitHub OAuthログインを開始するAPI.
+	//
+	// GET /auth/github/login
+	GitHubOAuthLogin(ctx context.Context) error
+	// Logout implements Logout operation.
+	//
+	// ログアウト処理API.
+	//
+	// POST /auth/logout
+	Logout(ctx context.Context) (*LogoutOK, error)
+	// RefreshToken implements RefreshToken operation.
+	//
+	// JWT リフレッシュ処理API.
+	//
+	// POST /auth/refresh
+	RefreshToken(ctx context.Context, req *RefreshTokenReq) (RefreshTokenRes, error)
 	// UpdateApplicationSecret implements UpdateApplicationSecret operation.
 	//
 	// 特定のアプリケーションのシークレットを更新するAPI.
@@ -65,18 +89,20 @@ type Handler interface {
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
-	h Handler
+	h   Handler
+	sec SecurityHandler
 	baseServer
 }
 
 // NewServer creates new Server.
-func NewServer(h Handler, opts ...ServerOption) (*Server, error) {
+func NewServer(h Handler, sec SecurityHandler, opts ...ServerOption) (*Server, error) {
 	s, err := newServerConfig(opts...).baseServer()
 	if err != nil {
 		return nil, err
 	}
 	return &Server{
 		h:          h,
+		sec:        sec,
 		baseServer: s,
 	}, nil
 }

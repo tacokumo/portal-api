@@ -4,6 +4,7 @@ package api
 
 import (
 	"fmt"
+	"time"
 )
 
 func (s *ErrorStatusCode) Error() string {
@@ -89,6 +90,95 @@ func (s *Application) SetAppconfigPath(val string) {
 // SetAppconfigBranch sets the value of AppconfigBranch.
 func (s *Application) SetAppconfigBranch(val string) {
 	s.AppconfigBranch = val
+}
+
+// Ref: #/components/schemas/AuthResponse
+type AuthResponse struct {
+	Success   bool      `json:"success"`
+	User      User      `json:"user"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+// GetSuccess returns the value of Success.
+func (s *AuthResponse) GetSuccess() bool {
+	return s.Success
+}
+
+// GetUser returns the value of User.
+func (s *AuthResponse) GetUser() User {
+	return s.User
+}
+
+// GetExpiresAt returns the value of ExpiresAt.
+func (s *AuthResponse) GetExpiresAt() time.Time {
+	return s.ExpiresAt
+}
+
+// SetSuccess sets the value of Success.
+func (s *AuthResponse) SetSuccess(val bool) {
+	s.Success = val
+}
+
+// SetUser sets the value of User.
+func (s *AuthResponse) SetUser(val User) {
+	s.User = val
+}
+
+// SetExpiresAt sets the value of ExpiresAt.
+func (s *AuthResponse) SetExpiresAt(val time.Time) {
+	s.ExpiresAt = val
+}
+
+func (*AuthResponse) gitHubOAuthCallbackRes() {}
+
+type BearerAuth struct {
+	Token string
+	Roles []string
+}
+
+// GetToken returns the value of Token.
+func (s *BearerAuth) GetToken() string {
+	return s.Token
+}
+
+// GetRoles returns the value of Roles.
+func (s *BearerAuth) GetRoles() []string {
+	return s.Roles
+}
+
+// SetToken sets the value of Token.
+func (s *BearerAuth) SetToken(val string) {
+	s.Token = val
+}
+
+// SetRoles sets the value of Roles.
+func (s *BearerAuth) SetRoles(val []string) {
+	s.Roles = val
+}
+
+type CookieAuth struct {
+	APIKey string
+	Roles  []string
+}
+
+// GetAPIKey returns the value of APIKey.
+func (s *CookieAuth) GetAPIKey() string {
+	return s.APIKey
+}
+
+// GetRoles returns the value of Roles.
+func (s *CookieAuth) GetRoles() []string {
+	return s.Roles
+}
+
+// SetAPIKey sets the value of APIKey.
+func (s *CookieAuth) SetAPIKey(val string) {
+	s.APIKey = val
+}
+
+// SetRoles sets the value of Roles.
+func (s *CookieAuth) SetRoles(val []string) {
+	s.Roles = val
 }
 
 // Ref: #/components/schemas/CreateApplicationRequest
@@ -191,6 +281,9 @@ func (s *Error) SetMessage(val string) {
 	s.Message = val
 }
 
+func (*Error) gitHubOAuthCallbackRes() {}
+func (*Error) refreshTokenRes()        {}
+
 // ErrorStatusCode wraps Error with StatusCode.
 type ErrorStatusCode struct {
 	StatusCode int
@@ -217,6 +310,9 @@ func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
 }
 
+// GitHubOAuthLoginFound is response for GitHubOAuthLogin operation.
+type GitHubOAuthLoginFound struct{}
+
 // Ref: #/components/schemas/HealthCheckStatus
 type HealthCheckStatus struct {
 	Status string `json:"status"`
@@ -230,6 +326,20 @@ func (s *HealthCheckStatus) GetStatus() string {
 // SetStatus sets the value of Status.
 func (s *HealthCheckStatus) SetStatus(val string) {
 	s.Status = val
+}
+
+type LogoutOK struct {
+	Success bool `json:"success"`
+}
+
+// GetSuccess returns the value of Success.
+func (s *LogoutOK) GetSuccess() bool {
+	return s.Success
+}
+
+// SetSuccess sets the value of Success.
+func (s *LogoutOK) SetSuccess(val bool) {
+	s.Success = val
 }
 
 // NewOptString returns new OptString with value set to v.
@@ -276,6 +386,20 @@ func (o OptString) Or(d string) string {
 		return v
 	}
 	return d
+}
+
+type RefreshTokenReq struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// GetRefreshToken returns the value of RefreshToken.
+func (s *RefreshTokenReq) GetRefreshToken() string {
+	return s.RefreshToken
+}
+
+// SetRefreshToken sets the value of RefreshToken.
+func (s *RefreshTokenReq) SetRefreshToken(val string) {
+	s.RefreshToken = val
 }
 
 // Ref: #/components/schemas/Secret
@@ -328,4 +452,102 @@ func (s *SecretItem) SetKey(val string) {
 // SetValue sets the value of Value.
 func (s *SecretItem) SetValue(val string) {
 	s.Value = val
+}
+
+// Ref: #/components/schemas/TokenPair
+type TokenPair struct {
+	AccessToken  string    `json:"access_token"`
+	RefreshToken string    `json:"refresh_token"`
+	ExpiresAt    time.Time `json:"expires_at"`
+}
+
+// GetAccessToken returns the value of AccessToken.
+func (s *TokenPair) GetAccessToken() string {
+	return s.AccessToken
+}
+
+// GetRefreshToken returns the value of RefreshToken.
+func (s *TokenPair) GetRefreshToken() string {
+	return s.RefreshToken
+}
+
+// GetExpiresAt returns the value of ExpiresAt.
+func (s *TokenPair) GetExpiresAt() time.Time {
+	return s.ExpiresAt
+}
+
+// SetAccessToken sets the value of AccessToken.
+func (s *TokenPair) SetAccessToken(val string) {
+	s.AccessToken = val
+}
+
+// SetRefreshToken sets the value of RefreshToken.
+func (s *TokenPair) SetRefreshToken(val string) {
+	s.RefreshToken = val
+}
+
+// SetExpiresAt sets the value of ExpiresAt.
+func (s *TokenPair) SetExpiresAt(val time.Time) {
+	s.ExpiresAt = val
+}
+
+func (*TokenPair) refreshTokenRes() {}
+
+// Ref: #/components/schemas/User
+type User struct {
+	ID    string    `json:"id"`
+	Login string    `json:"login"`
+	Name  OptString `json:"name"`
+	Email OptString `json:"email"`
+	Teams []string  `json:"teams"`
+}
+
+// GetID returns the value of ID.
+func (s *User) GetID() string {
+	return s.ID
+}
+
+// GetLogin returns the value of Login.
+func (s *User) GetLogin() string {
+	return s.Login
+}
+
+// GetName returns the value of Name.
+func (s *User) GetName() OptString {
+	return s.Name
+}
+
+// GetEmail returns the value of Email.
+func (s *User) GetEmail() OptString {
+	return s.Email
+}
+
+// GetTeams returns the value of Teams.
+func (s *User) GetTeams() []string {
+	return s.Teams
+}
+
+// SetID sets the value of ID.
+func (s *User) SetID(val string) {
+	s.ID = val
+}
+
+// SetLogin sets the value of Login.
+func (s *User) SetLogin(val string) {
+	s.Login = val
+}
+
+// SetName sets the value of Name.
+func (s *User) SetName(val OptString) {
+	s.Name = val
+}
+
+// SetEmail sets the value of Email.
+func (s *User) SetEmail(val OptString) {
+	s.Email = val
+}
+
+// SetTeams sets the value of Teams.
+func (s *User) SetTeams(val []string) {
+	s.Teams = val
 }

@@ -1,0 +1,29 @@
+desc: "CSRF保護が正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  get_request_skips_csrf:
+    desc: "GETリクエストはCSRFチェックをスキップすること"
+    req:
+      /health/liveness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200
+  bearer_auth_post_skips_csrf:
+    desc: "Bearer認証のPOSTリクエストはCSRFトークンなしでも403にならないこと"
+    req:
+      /v1alpha1/applications:
+        post:
+          header:
+            Authorization: "Bearer dummy-bearer-token"
+            Content-Type: "application/json"
+          body:
+            application/json:
+              name: "csrf-test-app"
+              repository_url: "https://github.com/tacokumo/test-app.git"
+              appconfig_path: "apps/test"
+              appconfig_branch: "main"
+    test: |
+      current.res.status != 403

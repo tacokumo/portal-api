@@ -16,6 +16,12 @@ format:
 test:
 	go test -v -parallel 4 ./...
 
+# E2E tests (requires running server: make dev-up)
+.PHONY: test-e2e
+test-e2e:
+	go tool runn run e2e/**/*.yaml --verbose
+	go test -v -count=1 ./e2e/...
+
 # Version detection
 VERSION ?= $(shell ./scripts/version.sh)
 LDFLAGS := -X github.com/tacokumo/portal-api/pkg/version.Version=$(VERSION)
@@ -111,7 +117,7 @@ setup-dev: setup-env setup-secrets
 .PHONY: health-check
 health-check:
 	@echo "Checking service health..."
-	@curl -f http://localhost:8080/healthz || echo "API service is down"
+	@curl -f http://localhost:8080/health/liveness || echo "API service is down"
 	@docker exec portal-valkey valkey-cli ping || echo "Valkey service is down"
 
 .PHONY: debug-logs

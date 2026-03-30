@@ -1,0 +1,21 @@
+desc: "ヘルスチェックエンドポイントが正常に応答すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  liveness:
+    desc: "Livenessエンドポイントが200を返すこと"
+    req:
+      /health/liveness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200 && current.res.body.status == "OK"
+  readiness:
+    desc: "Readinessエンドポイントが200を返すこと"
+    req:
+      /health/readiness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200 && current.res.body.status == "OK"

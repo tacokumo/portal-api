@@ -48,10 +48,10 @@ func (c *Config) validateAuth() error {
 	}
 
 	// ファイル存在確認
-	if _, err := os.Stat(c.Auth.JWT.PrivateKeyPath); os.IsNotExist(err) {
+	if _, err := os.Stat(c.Auth.JWT.PrivateKeyPath); err != nil {
 		return errors.Errorf("JWT private key file not found: %s", c.Auth.JWT.PrivateKeyPath)
 	}
-	if _, err := os.Stat(c.Auth.JWT.PublicKeyPath); os.IsNotExist(err) {
+	if _, err := os.Stat(c.Auth.JWT.PublicKeyPath); err != nil {
 		return errors.Errorf("JWT public key file not found: %s", c.Auth.JWT.PublicKeyPath)
 	}
 

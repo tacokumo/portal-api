@@ -174,6 +174,39 @@ func (v *ValkeyManager) GetCachedUserTeams(userID string) ([]string, error) {
 	return teams, nil
 }
 
+// SaveCSRFToken CSRFトークンをセッションに紐づけて保存
+func (v *ValkeyManager) SaveCSRFToken(sessionID string, token string, ttl time.Duration) error {
+	key := KeyPrefixCSRF + sessionID
+	cmd := v.client.B().Setex().Key(key).Seconds(int64(ttl / time.Second)).Value(token).Build()
+
+	if err := v.client.Do(v.ctx, cmd).Error(); err != nil {
+		return fmt.Errorf("failed to save CSRF token: %w", err)
+	}
+
+	return nil
+}
+
+// GetCSRFToken セッションに紐づくCSRFトークンを取得
+func (v *ValkeyManager) GetCSRFToken(sessionID string) (string, error) {
+	key := KeyPrefixCSRF + sessionID
+	cmd := v.client.B().Get().Key(key).Build()
+
+	result := v.client.Do(v.ctx, cmd)
+	if err := result.Error(); err != nil {
+		if valkey.IsValkeyNil(err) {
+			return "", fmt.Errorf("csrf token not found")
+		}
+		return "", fmt.Errorf("failed to get CSRF token: %w", err)
+	}
+
+	token, err := result.ToString()
+	if err != nil {
+		return "", fmt.Errorf("failed to convert CSRF token data: %w", err)
+	}
+
+	return token, nil
+}
+
 // Close 接続クローズ
 func (v *ValkeyManager) Close() error {
 	v.client.Close()

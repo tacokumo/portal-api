@@ -36,6 +36,12 @@ type Manager interface {
 	// GetCachedUserTeams キャッシュされたTeam情報取得
 	GetCachedUserTeams(userID string) ([]string, error)
 
+	// SaveCSRFToken CSRFトークンをセッションに紐づけて保存
+	SaveCSRFToken(sessionID string, token string, ttl time.Duration) error
+
+	// GetCSRFToken セッションに紐づくCSRFトークンを取得
+	GetCSRFToken(sessionID string) (string, error)
+
 	// Close 接続クローズ
 	Close() error
 }

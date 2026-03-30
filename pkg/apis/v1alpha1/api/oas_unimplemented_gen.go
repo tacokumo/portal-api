@@ -58,6 +58,15 @@ func (UnimplementedHandler) GetApplications(ctx context.Context) (r []Applicatio
 	return r, ht.ErrNotImplemented
 }
 
+// GetCSRFToken implements GetCSRFToken operation.
+//
+// CSRFトークンを取得するAPI。セッションCookie認証が必要。.
+//
+// GET /auth/csrf-token
+func (UnimplementedHandler) GetCSRFToken(ctx context.Context) (r *CSRFTokenResponse, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetHealthLiveness implements GetHealthLiveness operation.
 //
 // Liveness statusを取得するAPI.

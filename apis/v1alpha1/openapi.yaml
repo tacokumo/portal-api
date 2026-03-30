@@ -76,6 +76,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /auth/csrf-token:
+    get:
+      tags:
+        - "auth"
+      summary: "Get CSRF Token"
+      description: "CSRFトークンを取得するAPI。セッションCookie認証が必要。"
+      operationId: "GetCSRFToken"
+      security:
+        - CookieAuth: []
+      responses:
+        '200':
+          description: "CSRFトークン取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CSRFTokenResponse"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /auth/logout:
     post:
       tags:
@@ -365,6 +387,13 @@ components:
       name: portal_session
       description: "OAuth JWT Cookie"
   schemas:
+    CSRFTokenResponse:
+      type: object
+      properties:
+        csrf_token:
+          type: string
+      required:
+        - csrf_token
     Error:
       type: object
       properties:

@@ -275,6 +275,37 @@ func (s *AuthService) RefreshToken(ctx context.Context, req *api.RefreshTokenReq
 	}, nil
 }
 
+// GetCSRFToken implements GetCSRFToken operation.
+func (s *AuthService) GetCSRFToken(ctx context.Context) (*api.CSRFTokenResponse, error) {
+	sessionID, ok := ctx.Value("session_id").(string)
+	if !ok || sessionID == "" {
+		return nil, &ErrorWithCode{
+			Code:    http.StatusUnauthorized,
+			Message: "session required for CSRF token",
+		}
+	}
+
+	tokenBytes := make([]byte, 32)
+	if _, err := rand.Read(tokenBytes); err != nil {
+		return nil, &ErrorWithCode{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to generate CSRF token",
+		}
+	}
+	token := base64.URLEncoding.EncodeToString(tokenBytes)
+
+	if err := s.sessionManager.SaveCSRFToken(sessionID, token, 30*time.Minute); err != nil {
+		return nil, &ErrorWithCode{
+			Code:    http.StatusInternalServerError,
+			Message: "failed to save CSRF token",
+		}
+	}
+
+	return &api.CSRFTokenResponse{
+		CsrfToken: token,
+	}, nil
+}
+
 const (
 	ErrorCodeNotImplemented = 501
 )

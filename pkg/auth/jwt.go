@@ -43,6 +43,17 @@ func NewJWTManager(cfg config.JWTConfig) (*JWTManager, error) {
 	}, nil
 }
 
+// NewJWTManagerFromKeys RSA鍵ペアから直接JWTマネージャーを作成（テスト用）
+func NewJWTManagerFromKeys(privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey, cfg config.JWTConfig) *JWTManager {
+	return &JWTManager{
+		privateKey:           privateKey,
+		publicKey:            publicKey,
+		accessTokenDuration:  cfg.AccessTokenDuration,
+		refreshTokenDuration: cfg.RefreshTokenDuration,
+		issuer:               "portal-api",
+	}
+}
+
 // GenerateTokenPair アクセストークンとリフレッシュトークンを生成
 func (j *JWTManager) GenerateTokenPair(user User, sessionID string) (*TokenPair, error) {
 	now := time.Now()

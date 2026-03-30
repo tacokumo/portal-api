@@ -38,3 +38,5 @@ Thumbs.db
 # テスト・カバレッジ
 coverage.out
 *.test
+
+*.txt

@@ -1,10 +1,9 @@
-version: '3.8'
-
 # 開発環境用Docker Composeオーバーライド
 # デバッグ機能を有効にします
 services:
   portal-api:
-    # 開発用設定のオーバーライド
+    # 開発用設定のオーバーライド（ビルド済みイメージの代わりにGoイメージを使用）
+    build: !reset {}
     image: golang:1.26
     working_dir: /src
     volumes:

@@ -38,6 +38,12 @@ type Handler interface {
 	//
 	// GET /v1alpha1/applications
 	GetApplications(ctx context.Context) ([]Application, error)
+	// GetCSRFToken implements GetCSRFToken operation.
+	//
+	// CSRFトークンを取得するAPI。セッションCookie認証が必要。.
+	//
+	// GET /auth/csrf-token
+	GetCSRFToken(ctx context.Context) (*CSRFTokenResponse, error)
 	// GetHealthLiveness implements GetHealthLiveness operation.
 	//
 	// Liveness statusを取得するAPI.

@@ -156,6 +156,21 @@ func (s *BearerAuth) SetRoles(val []string) {
 	s.Roles = val
 }
 
+// Ref: #/components/schemas/CSRFTokenResponse
+type CSRFTokenResponse struct {
+	CsrfToken string `json:"csrf_token"`
+}
+
+// GetCsrfToken returns the value of CsrfToken.
+func (s *CSRFTokenResponse) GetCsrfToken() string {
+	return s.CsrfToken
+}
+
+// SetCsrfToken sets the value of CsrfToken.
+func (s *CSRFTokenResponse) SetCsrfToken(val string) {
+	s.CsrfToken = val
+}
+
 type CookieAuth struct {
 	APIKey string
 	Roles  []string

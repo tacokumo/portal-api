@@ -73,6 +73,26 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 				switch elem[0] {
+				case 'c': // Prefix: "csrf-token"
+
+					if l := len("csrf-token"); len(elem) >= l && elem[0:l] == "csrf-token" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "GET":
+							s.handleGetCSRFTokenRequest([0]string{}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+
 				case 'g': // Prefix: "github/"
 
 					if l := len("github/"); len(elem) >= l && elem[0:l] == "github/" {
@@ -420,6 +440,31 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 					break
 				}
 				switch elem[0] {
+				case 'c': // Prefix: "csrf-token"
+
+					if l := len("csrf-token"); len(elem) >= l && elem[0:l] == "csrf-token" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch method {
+						case "GET":
+							r.name = GetCSRFTokenOperation
+							r.summary = "Get CSRF Token"
+							r.operationID = "GetCSRFToken"
+							r.operationGroup = ""
+							r.pathPattern = "/auth/csrf-token"
+							r.args = args
+							r.count = 0
+							return r, true
+						default:
+							return
+						}
+					}
+
 				case 'g': // Prefix: "github/"
 
 					if l := len("github/"); len(elem) >= l && elem[0:l] == "github/" {

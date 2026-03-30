@@ -68,6 +68,7 @@ var operationRolesCookieAuth = map[string][]string{
 	GetApplicationOperation:          []string{},
 	GetApplicationSecretOperation:    []string{},
 	GetApplicationsOperation:         []string{},
+	GetCSRFTokenOperation:            []string{},
 	LogoutOperation:                  []string{},
 	UpdateApplicationSecretOperation: []string{},
 }

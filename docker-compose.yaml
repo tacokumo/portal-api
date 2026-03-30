@@ -6,6 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: portal-api:local
     container_name: portal-api
     restart: unless-stopped
     ports:

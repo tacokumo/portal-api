@@ -61,7 +61,7 @@ func (s *Server) Start(ctx context.Context) error {
 	}
 
 	// 追加ミドルウェア
-	csrfMw := middleware.NewCSRFMiddleware(sessionManager, true) // HTTPS前提
+	csrfMw := middleware.NewCSRFMiddleware(sessionManager, jwtManager, true) // HTTPS前提
 	rateLimitMw := middleware.NewRateLimitMiddleware(sessionManager)
 	auditMw := middleware.NewAuditMiddleware()
 	rbacMw := middleware.NewRBACMiddleware(true) // strictMode有効
@@ -86,19 +86,18 @@ func (s *Server) Start(ctx context.Context) error {
 	// 監査ログミドルウェア（全体に適用）
 	e.Use(auditMw.Log())
 
-	// CSRF保護ミドルウェア（本番環境でのみ有効化を推奨）
-	// e.Use(csrfMw.Protect())
+	// CSRF保護ミドルウェア
+	e.Use(csrfMw.Protect())
 
 	// 認証ミドルウェアは特定のルートに適用（現在はAPIサーバー内で処理）
 	_ = authMw
 	_ = rbacMw
-	_ = csrfMw
 
 	s.logger.InfoContext(ctx, "middleware enabled",
 		"auth_middleware", "configured",
 		"rate_limit", "enabled",
 		"audit_log", "enabled",
-		"csrf", "disabled",
+		"csrf", "enabled",
 		"rbac", "configured")
 
 	// 認証エンドポイント設定（認証不要）

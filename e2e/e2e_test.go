@@ -1,6 +1,8 @@
 package e2e
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -39,9 +41,31 @@ func newJWTManager(t *testing.T) *auth.JWTManager {
 		AccessTokenDuration:  time.Hour,
 		RefreshTokenDuration: 8 * time.Hour,
 	}
-	mgr, err := auth.NewJWTManager(cfg)
+
+	privateKeyExists, err := fileExists(privateKeyPath)
 	require.NoError(t, err)
-	return mgr
+	publicKeyExists, err := fileExists(publicKeyPath)
+	require.NoError(t, err)
+	if privateKeyExists && publicKeyExists {
+		mgr, err := auth.NewJWTManager(cfg)
+		require.NoError(t, err)
+		return mgr
+	}
+
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+	return auth.NewJWTManagerFromKeys(privateKey, &privateKey.PublicKey, cfg)
+}
+
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }
 
 func TestE2E_CSRFProtection_CookieAuthWithoutCSRFToken(t *testing.T) {

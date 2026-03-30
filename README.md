@@ -114,6 +114,14 @@ make format        # コードフォーマット
 make generate      # OpenAPI コードを生成
 ```
 
+### E2Eテスト
+
+E2Eテストは実行対象のURLを `E2E_BASE_URL` で指定した場合のみ実行されます。
+
+```bash
+E2E_BASE_URL=http://localhost:8080 go test -v ./e2e/...
+```
+
 ### デバッグ・トラブルシューティング
 
 ```bash

@@ -16,11 +16,15 @@ import (
 	"github.com/tacokumo/portal-api/pkg/config"
 )
 
-func baseURL() string {
+func baseURL(t *testing.T) string {
+	t.Helper()
+
 	if u := os.Getenv("E2E_BASE_URL"); u != "" {
 		return u
 	}
-	return "http://localhost:8080"
+
+	t.Skip("E2E_BASE_URL is not set")
+	return ""
 }
 
 func newJWTManager(t *testing.T) *auth.JWTManager {
@@ -76,7 +80,7 @@ func TestE2E_CSRFProtection_CookieAuthWithoutCSRFToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Cookie認証でCSRFトークンなしのPOSTは403になるべき
-	req, err := http.NewRequest("POST", baseURL()+"/auth/logout", nil)
+	req, err := http.NewRequest("POST", baseURL(t)+"/auth/logout", nil)
 	require.NoError(t, err)
 	req.AddCookie(&http.Cookie{Name: "portal_session", Value: tokenPair.AccessToken})
 
@@ -95,7 +99,7 @@ func TestE2E_CSRFProtection_CookieAuthWithCSRFToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// 1. CSRFトークンを取得
-	req, err := http.NewRequest("GET", baseURL()+"/auth/csrf-token", nil)
+	req, err := http.NewRequest("GET", baseURL(t)+"/auth/csrf-token", nil)
 	require.NoError(t, err)
 	req.AddCookie(&http.Cookie{Name: "portal_session", Value: tokenPair.AccessToken})
 
@@ -116,7 +120,7 @@ func TestE2E_CSRFProtection_CookieAuthWithCSRFToken(t *testing.T) {
 	assert.NotEmpty(t, csrfResp.CsrfToken, "CSRFトークンが返されるべき")
 
 	// 2. CSRFトークン付きでPOSTリクエスト
-	req2, err := http.NewRequest("POST", baseURL()+"/auth/logout", nil)
+	req2, err := http.NewRequest("POST", baseURL(t)+"/auth/logout", nil)
 	require.NoError(t, err)
 	req2.AddCookie(&http.Cookie{Name: "portal_session", Value: tokenPair.AccessToken})
 	req2.Header.Set("X-CSRF-Token", csrfResp.CsrfToken)
@@ -138,7 +142,7 @@ func TestE2E_CSRFProtection_BearerAuthSkipsCSRF(t *testing.T) {
 
 	// Bearer認証のPOSTリクエストはCSRFチェックをスキップする
 	// logoutエンドポイントを使用（K8sクライアント不要）
-	req, err := http.NewRequest("POST", baseURL()+"/auth/logout", nil)
+	req, err := http.NewRequest("POST", baseURL(t)+"/auth/logout", nil)
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
 
@@ -158,7 +162,7 @@ func TestE2E_CSRFProtection_InvalidCSRFToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// 不正なCSRFトークンでPOST → 403
-	req, err := http.NewRequest("POST", baseURL()+"/auth/logout", nil)
+	req, err := http.NewRequest("POST", baseURL(t)+"/auth/logout", nil)
 	require.NoError(t, err)
 	req.AddCookie(&http.Cookie{Name: "portal_session", Value: tokenPair.AccessToken})
 	req.Header.Set("X-CSRF-Token", "invalid-token-value")

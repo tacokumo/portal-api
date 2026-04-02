@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -71,6 +72,202 @@ func fileExists(path string) (bool, error) {
 	}
 	return false, err
 }
+
+// --- Application バリデーションテスト ---
+
+func TestE2E_ApplicationValidation_EmptyName(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation")
+	require.NoError(t, err)
+
+	body := `{"name":"","repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"main"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "空の名前は400を返すべき")
+}
+
+func TestE2E_ApplicationValidation_UppercaseName(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation-2")
+	require.NoError(t, err)
+
+	body := `{"name":"Invalid-App","repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"main"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "大文字を含む名前は400を返すべき")
+}
+
+func TestE2E_ApplicationValidation_HttpURL(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation-3")
+	require.NoError(t, err)
+
+	body := `{"name":"valid-app","repository_url":"http://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"main"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "httpスキームは400を返すべき")
+}
+
+func TestE2E_ApplicationValidation_PrivateIPURL(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation-4")
+	require.NoError(t, err)
+
+	body := `{"name":"valid-app","repository_url":"https://127.0.0.1/repo.git","appconfig_path":"apps/test","appconfig_branch":"main"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "プライベートIPは400を返すべき")
+}
+
+func TestE2E_ApplicationValidation_PathTraversal(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation-5")
+	require.NoError(t, err)
+
+	body := `{"name":"valid-app","repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"../etc/passwd","appconfig_branch":"main"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "パストラバーサルは400を返すべき")
+}
+
+func TestE2E_ApplicationValidation_InvalidBranch(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-validation-6")
+	require.NoError(t, err)
+
+	body := `{"name":"valid-app","repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"branch..name"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "不正なブランチ名は400を返すべき")
+}
+
+// --- Secret バリデーションテスト ---
+
+func TestE2E_SecretValidation_EmptyItems(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-secret-1")
+	require.NoError(t, err)
+
+	body := `{"items":[]}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/test-app/secret", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "空のItemsは400を返すべき")
+}
+
+func TestE2E_SecretValidation_InvalidKey(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-secret-2")
+	require.NoError(t, err)
+
+	body := `{"items":[{"key":"invalid/key","value":"some-value"}]}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/test-app/secret", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "不正なキーは400を返すべき")
+}
+
+func TestE2E_SecretValidation_EmptyValue(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-secret-3")
+	require.NoError(t, err)
+
+	body := `{"items":[{"key":"VALID_KEY","value":""}]}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/test-app/secret", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "空の値は400を返すべき")
+}
+
+func TestE2E_SecretValidation_UpdateInvalidKey(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-secret-4")
+	require.NoError(t, err)
+
+	body := `{"items":[{"key":"key with spaces","value":"some-value"}]}`
+	req, err := http.NewRequest("PUT", baseURL(t)+"/v1alpha1/applications/test-app/secret", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "更新時の不正なキーは400を返すべき")
+}
+
+// --- CSRF テスト ---
 
 func TestE2E_CSRFProtection_CookieAuthWithoutCSRFToken(t *testing.T) {
 	jwtMgr := newJWTManager(t)

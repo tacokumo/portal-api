@@ -2,6 +2,7 @@ package v1alpha1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -56,7 +57,8 @@ func (e *ErrorWithCode) Error() string {
 }
 
 func (h *Handler) NewError(ctx context.Context, err error) *api.ErrorStatusCode {
-	if ewc, ok := err.(*ErrorWithCode); ok {
+	var ewc *ErrorWithCode
+	if errors.As(err, &ewc) {
 		return &api.ErrorStatusCode{
 			StatusCode: ewc.Code,
 			Response: api.Error{

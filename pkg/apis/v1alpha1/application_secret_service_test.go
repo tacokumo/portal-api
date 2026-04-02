@@ -62,6 +62,64 @@ func TestApplicationSecretService_CreateApplicationSecret(t *testing.T) {
 			isError: false,
 		},
 		{
+			name: "Secretキーにスラッシュが含まれる場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateSecretRequest{
+				Items: []api.SecretItem{
+					{Key: "invalid/key", Value: "value"},
+				},
+			},
+			params: api.CreateApplicationSecretParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
+			name: "Secret値が空の場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateSecretRequest{
+				Items: []api.SecretItem{
+					{Key: "VALID_KEY", Value: ""},
+				},
+			},
+			params: api.CreateApplicationSecretParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
+			name: "Itemsが空の場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateSecretRequest{
+				Items: []api.SecretItem{},
+			},
+			params: api.CreateApplicationSecretParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
 			name: "Applicationが存在しない場合のエラーケース",
 			config: &config.Config{
 				PortalName: "portal-namespace",
@@ -270,6 +328,26 @@ func TestApplicationSecretService_UpdateApplicationSecret(t *testing.T) {
 				Name: "example-app",
 			},
 			isError: false,
+		},
+		{
+			name: "更新時にSecretキーが不正な場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateSecretRequest{
+				Items: []api.SecretItem{
+					{Key: "invalid/key", Value: "value"},
+				},
+			},
+			params: api.UpdateApplicationSecretParams{
+				Name: "example-app",
+			},
+			isError: true,
 		},
 		{
 			name: "存在しないSecretを更新しようとした場合のエラーケース",

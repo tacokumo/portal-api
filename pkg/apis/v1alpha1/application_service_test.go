@@ -203,6 +203,78 @@ func TestApplicationService_CreateApplication(t *testing.T) {
 			isError: false,
 		},
 		{
+			name: "名前が空の場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateApplicationRequest{
+				Name:            "",
+				AppconfigPath:   "apps/test",
+				RepositoryURL:   "https://github.com/tacokumo/test.git",
+				AppconfigBranch: "main",
+			},
+			isError: true,
+		},
+		{
+			name: "リポジトリURLがhttpの場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateApplicationRequest{
+				Name:            "valid-app",
+				AppconfigPath:   "apps/test",
+				RepositoryURL:   "http://github.com/tacokumo/test.git",
+				AppconfigBranch: "main",
+			},
+			isError: true,
+		},
+		{
+			name: "リポジトリURLがプライベートIPの場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateApplicationRequest{
+				Name:            "valid-app",
+				AppconfigPath:   "apps/test",
+				RepositoryURL:   "https://127.0.0.1/repo",
+				AppconfigBranch: "main",
+			},
+			isError: true,
+		},
+		{
+			name: "appconfigPathにパストラバーサルが含まれる場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.CreateApplicationRequest{
+				Name:            "valid-app",
+				AppconfigPath:   "../etc/passwd",
+				RepositoryURL:   "https://github.com/tacokumo/test.git",
+				AppconfigBranch: "main",
+			},
+			isError: true,
+		},
+		{
 			name: "既に同名のApplicationが存在する場合のエラーケース",
 			config: &config.Config{
 				PortalName: "portal-namespace",

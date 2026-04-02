@@ -30,6 +30,10 @@ func NewApplicationSecretService(
 }
 
 func (s *ApplicationSecretService) CreateApplicationSecret(ctx context.Context, req *api.CreateSecretRequest, params api.CreateApplicationSecretParams) (*api.Secret, error) {
+	if err := ValidateCreateSecretRequest(req); err != nil {
+		return nil, err
+	}
+
 	// TODO: Secretを暗号化/復号する鍵を生成して保存する
 
 	app := tacokumov1alpha1.Application{}
@@ -92,6 +96,10 @@ func (s *ApplicationSecretService) GetApplicationSecret(ctx context.Context, par
 }
 
 func (s *ApplicationSecretService) UpdateApplicationSecret(ctx context.Context, req *api.CreateSecretRequest, params api.UpdateApplicationSecretParams) (*api.Secret, error) {
+	if err := ValidateCreateSecretRequest(req); err != nil {
+		return nil, err
+	}
+
 	key := types.NamespacedName{
 		Namespace: s.config.PortalName,
 		Name:      fmt.Sprintf("%s-secret", params.Name),

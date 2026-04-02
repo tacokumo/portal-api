@@ -59,6 +59,10 @@ func (s *ApplicationService) CreateApplication(
 	ctx context.Context,
 	req *api.CreateApplicationRequest,
 ) (*api.Application, error) {
+	if err := ValidateCreateApplicationRequest(req); err != nil {
+		return nil, err
+	}
+
 	app := tacokumov1alpha1.Application{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      req.Name,

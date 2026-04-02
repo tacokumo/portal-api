@@ -1,3 +1,7 @@
+# コンテナランタイム自動検出 (podman優先)
+COMPOSE := $(shell if command -v podman-compose >/dev/null 2>&1; then echo "podman-compose"; elif command -v podman >/dev/null 2>&1; then echo "podman compose"; else echo "docker compose"; fi)
+CONTAINER_CMD := $(shell if command -v podman >/dev/null 2>&1; then echo podman; else echo docker; fi)
+
 .PHONY: all
 all: format test build lint
 
@@ -20,7 +24,7 @@ test:
 .PHONY: test-e2e
 test-e2e:
 	go tool runn run e2e/**/*.yaml --verbose
-	go test -v -count=1 ./e2e/...
+	E2E_BASE_URL=http://localhost:8080 go test -v -count=1 ./e2e/...
 
 # Version detection
 VERSION ?= $(shell ./scripts/version.sh)
@@ -35,46 +39,32 @@ lint:
 	golangci-lint run
 
 # =========================================
-# Docker Compose タスク
+# コンテナタスク
 # =========================================
 
-.PHONY: docker-build
-docker-build:
-	docker compose build
-
-.PHONY: docker-up
-docker-up: setup-secrets
-	docker compose up -d
-
-.PHONY: docker-down
-docker-down:
-	docker compose down
-
-.PHONY: docker-logs
-docker-logs:
-	docker compose logs -f
-
-.PHONY: docker-clean
-docker-clean:
-	docker compose down -v --remove-orphans
-	docker system prune -f
-
-# 開発環境用タスク
 .PHONY: dev-up
 dev-up: setup-secrets
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d
+	$(COMPOSE) up -d
 
 .PHONY: dev-down
 dev-down:
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml down
+	$(COMPOSE) down
 
 .PHONY: dev-logs
 dev-logs:
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml logs -f
+	$(COMPOSE) logs -f
 
 .PHONY: dev-rebuild
 dev-rebuild:
-	docker compose -f docker-compose.yaml -f docker-compose.dev.yaml up -d --build
+	$(COMPOSE) up -d --build
+
+.PHONY: dev-restart
+dev-restart:
+	$(COMPOSE) restart portal-api
+
+.PHONY: dev-clean
+dev-clean:
+	$(COMPOSE) down -v --remove-orphans
 
 # =========================================
 # 開発環境セットアップタスク
@@ -118,11 +108,11 @@ setup-dev: setup-env setup-secrets
 health-check:
 	@echo "Checking service health..."
 	@curl -f http://localhost:8080/health/liveness || echo "API service is down"
-	@docker exec portal-valkey valkey-cli ping || echo "Valkey service is down"
+	@$(CONTAINER_CMD) exec portal-valkey valkey-cli ping || echo "Valkey service is down"
 
 .PHONY: debug-logs
 debug-logs:
 	@echo "=== Portal API Logs ==="
-	@docker logs portal-api --tail=50
+	@$(CONTAINER_CMD) logs portal-api --tail=50
 	@echo "=== Valkey Logs ==="
-	@docker logs portal-valkey --tail=20
+	@$(CONTAINER_CMD) logs portal-valkey --tail=20

@@ -1,39 +1,38 @@
-version: '3.8'
-
 services:
-  # Portal API メインアプリケーション
   portal-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: portal-api:local
+    image: golang:1.26
     container_name: portal-api
     restart: unless-stopped
+    working_dir: /src
     ports:
       - "8080:8080"
+      - "2345:2345"
     environment:
       - SERVER_PORT=8080
-      - LOG_LEVEL=info
+      - LOG_LEVEL=debug
       - PORTAL_NAME=TACOKUMO Portal (Local)
       - VALKEY_ADDRESS=valkey:6379
       - VALKEY_PASSWORD=
       - VALKEY_DB=0
-      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
-      # GitHub OAuth設定（.envから読み込み）
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080,http://localhost:*
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
       - GITHUB_OAUTH_REDIRECT_URL=${GITHUB_OAUTH_REDIRECT_URL:-http://localhost:8080/auth/github/callback}
-      # GitHub App設定
       - GITHUB_APP_ID=${GITHUB_APP_ID:-}
       - GITHUB_APP_PRIVATE_KEY_PATH=/etc/secrets/github-app-private-key.pem
-      # JWT設定
       - JWT_PRIVATE_KEY_PATH=/etc/secrets/jwt-private-key.pem
       - JWT_PUBLIC_KEY_PATH=/etc/secrets/jwt-public-key.pem
       - JWT_ACCESS_TOKEN_DURATION=1h
       - JWT_REFRESH_TOKEN_DURATION=8h
     volumes:
-      # JWT鍵とGitHub App秘密鍵用のマウント
+      - .:/src
+      - go_mod_cache:/go/pkg/mod
       - ./secrets:/etc/secrets:ro
+    command: >
+      sh -c "
+        go mod download &&
+        go run ./cmd/server
+      "
     depends_on:
       valkey:
         condition: service_healthy
@@ -46,7 +45,6 @@ services:
       retries: 3
       start_period: 40s
 
-  # Valkey (Redis互換) セッション管理用
   valkey:
     image: valkey/valkey:7.2-alpine
     container_name: portal-valkey
@@ -55,6 +53,7 @@ services:
       - "6379:6379"
     volumes:
       - valkey_data:/data
+      - ./config/valkey-dev.conf:/usr/local/etc/valkey/valkey.conf:ro
     networks:
       - portal-network
     healthcheck:
@@ -63,12 +62,13 @@ services:
       timeout: 5s
       retries: 5
     command: >
-      valkey-server
-      --appendonly yes
-      --appendfsync everysec
+      valkey-server /usr/local/etc/valkey/valkey.conf
+      --loglevel notice
 
 volumes:
   valkey_data:
+    driver: local
+  go_mod_cache:
     driver: local
 
 networks:

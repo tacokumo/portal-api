@@ -9,6 +9,7 @@ import (
 	"github.com/tacokumo/portal-api/pkg/config"
 	tacokumov1alpha1 "github.com/tacokumo/portal-controller-kubernetes/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -128,4 +129,41 @@ func (s *ApplicationSecretService) UpdateApplicationSecret(ctx context.Context, 
 			}
 		}),
 	}, nil
+}
+
+func (s *ApplicationSecretService) DeleteApplicationSecret(ctx context.Context, params api.DeleteApplicationSecretParams) (api.DeleteApplicationSecretRes, error) {
+	// 1. Secret取得（存在確認）
+	secretKey := types.NamespacedName{
+		Namespace: s.config.PortalName,
+		Name:      fmt.Sprintf("%s-secret", params.Name),
+	}
+	secret := corev1.Secret{}
+	if err := s.client.Get(ctx, secretKey, &secret); err != nil {
+		return nil, err // NotFound時は404へ変換される
+	}
+
+	// 2. Secret削除
+	if err := s.client.Delete(ctx, &secret); err != nil {
+		return nil, err
+	}
+
+	// 3. ApplicationのEnvSecretNameをクリア（存在する場合）
+	appKey := client.ObjectKey{
+		Namespace: s.config.PortalName,
+		Name:      params.Name,
+	}
+	app := tacokumov1alpha1.Application{}
+	if err := s.client.Get(ctx, appKey, &app); err != nil {
+		if apierrors.IsNotFound(err) {
+			return &api.DeleteApplicationSecretNoContent{}, nil // 孤立Secretのクリーンアップ成功
+		}
+		return nil, err
+	}
+
+	app.Spec.ReleaseTemplate.EnvSecretName = nil
+	if err := s.client.Update(ctx, &app); err != nil {
+		return nil, err
+	}
+
+	return &api.DeleteApplicationSecretNoContent{}, nil
 }

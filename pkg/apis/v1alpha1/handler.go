@@ -11,6 +11,7 @@ import (
 	"github.com/tacokumo/portal-api/pkg/auth/github"
 	"github.com/tacokumo/portal-api/pkg/auth/session"
 	"github.com/tacokumo/portal-api/pkg/config"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -64,6 +65,17 @@ func (h *Handler) NewError(ctx context.Context, err error) *api.ErrorStatusCode 
 			Response: api.Error{
 				Code:    int32(ewc.Code),
 				Message: ewc.Message,
+			},
+		}
+	}
+
+	// Kubernetes NotFoundエラーを404に変換
+	if apierrors.IsNotFound(err) {
+		return &api.ErrorStatusCode{
+			StatusCode: http.StatusNotFound,
+			Response: api.Error{
+				Code:    ErrorCodeNotFound,
+				Message: "resource not found",
 			},
 		}
 	}

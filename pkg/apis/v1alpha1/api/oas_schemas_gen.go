@@ -270,6 +270,11 @@ func (s *CreateSecretRequest) SetItems(val []SecretItem) {
 	s.Items = val
 }
 
+// DeleteApplicationSecretNoContent is response for DeleteApplicationSecret operation.
+type DeleteApplicationSecretNoContent struct{}
+
+func (*DeleteApplicationSecretNoContent) deleteApplicationSecretRes() {}
+
 // Ref: #/components/schemas/Error
 type Error struct {
 	Code    int32  `json:"code"`
@@ -296,8 +301,9 @@ func (s *Error) SetMessage(val string) {
 	s.Message = val
 }
 
-func (*Error) gitHubOAuthCallbackRes() {}
-func (*Error) refreshTokenRes()        {}
+func (*Error) deleteApplicationSecretRes() {}
+func (*Error) gitHubOAuthCallbackRes()     {}
+func (*Error) refreshTokenRes()            {}
 
 // ErrorStatusCode wraps Error with StatusCode.
 type ErrorStatusCode struct {

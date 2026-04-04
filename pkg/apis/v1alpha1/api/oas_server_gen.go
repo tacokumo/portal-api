@@ -20,6 +20,12 @@ type Handler interface {
 	//
 	// POST /v1alpha1/applications/{name}/secret
 	CreateApplicationSecret(ctx context.Context, req *CreateSecretRequest, params CreateApplicationSecretParams) (*Secret, error)
+	// DeleteApplicationSecret implements DeleteApplicationSecret operation.
+	//
+	// 特定のアプリケーションのシークレットを削除するAPI.
+	//
+	// DELETE /v1alpha1/applications/{name}/secret
+	DeleteApplicationSecret(ctx context.Context, params DeleteApplicationSecretParams) (DeleteApplicationSecretRes, error)
 	// GetApplication implements GetApplication operation.
 	//
 	// 特定のアプリケーションを取得するAPI.

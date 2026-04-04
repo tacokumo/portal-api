@@ -481,3 +481,20 @@ func TestE2E_RateLimit_ZZ_ExceedsLimit(t *testing.T) {
 	}
 	assert.True(t, got429, "十分なリクエストで429 Too Many Requestsが返るべき")
 }
+
+// --- Secret削除 テスト ---
+
+func TestE2E_SecretDelete_Unauthorized(t *testing.T) {
+	// 不正なトークンでのSecret削除は認証エラー
+	req, err := http.NewRequest("DELETE", baseURL(t)+"/v1alpha1/applications/test-app/secret", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// 不正なトークンなので200/204以外を返すべき
+	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
+	assert.NotEqual(t, http.StatusNoContent, resp.StatusCode, "不正なトークンでは204を返さないべき")
+}

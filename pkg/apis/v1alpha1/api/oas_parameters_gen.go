@@ -80,6 +80,72 @@ func decodeCreateApplicationSecretParams(args [1]string, argsEscaped bool, r *ht
 	return params, nil
 }
 
+// DeleteApplicationSecretParams is parameters of DeleteApplicationSecret operation.
+type DeleteApplicationSecretParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackDeleteApplicationSecretParams(packed middleware.Parameters) (params DeleteApplicationSecretParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeDeleteApplicationSecretParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteApplicationSecretParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetApplicationParams is parameters of GetApplication operation.
 type GetApplicationParams struct {
 	// アプリケーション名.

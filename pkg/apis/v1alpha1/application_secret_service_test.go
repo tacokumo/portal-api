@@ -394,3 +394,118 @@ func TestApplicationSecretService_UpdateApplicationSecret(t *testing.T) {
 		})
 	}
 }
+
+func TestApplicationSecretService_DeleteApplicationSecret(t *testing.T) {
+	tests := []struct {
+		name     string
+		config   *config.Config
+		clientFn func() client.Client
+		params   api.DeleteApplicationSecretParams
+		isError  bool
+	}{
+		{
+			name: "正常に削除できるケース（Secret+Application存在）",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				c := fake.NewClientBuilder().WithScheme(scheme).Build()
+				secretName := "example-app-secret"
+				err = c.Create(t.Context(), &tacokumov1alpha1.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-app",
+						Namespace: "portal-namespace",
+					},
+					Spec: tacokumov1alpha1.ApplicationSpec{
+						ReleaseTemplate: tacokumov1alpha1.ReleaseSpec{
+							AppConfigPath:   "apps/example-app",
+							AppConfigBranch: "main",
+							EnvSecretName:   &secretName,
+							Repo: tacokumov1alpha1.RepositoryRef{
+								URL: "https://github.com/tacokumo/tacokumo-bot.git",
+							},
+						},
+					},
+				})
+				assert.NoError(t, err)
+				err = c.Create(t.Context(), &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-app-secret",
+						Namespace: "portal-namespace",
+					},
+					Data: map[string][]byte{
+						"DB_PASSWORD": []byte("secret123"),
+					},
+				})
+				assert.NoError(t, err)
+				return c
+			},
+			params: api.DeleteApplicationSecretParams{
+				Name: "example-app",
+			},
+			isError: false,
+		},
+		{
+			name: "Secret不存在でエラー",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			params: api.DeleteApplicationSecretParams{
+				Name: "non-existent-app",
+			},
+			isError: true,
+		},
+		{
+			name: "孤立Secret削除（Applicationなし）成功",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				c := fake.NewClientBuilder().WithScheme(scheme).Build()
+				err = c.Create(t.Context(), &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "orphaned-app-secret",
+						Namespace: "portal-namespace",
+					},
+					Data: map[string][]byte{
+						"DB_PASSWORD": []byte("secret123"),
+					},
+				})
+				assert.NoError(t, err)
+				return c
+			},
+			params: api.DeleteApplicationSecretParams{
+				Name: "orphaned-app",
+			},
+			isError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			service := &ApplicationSecretService{
+				config: tt.config,
+				client: tt.clientFn(),
+			}
+			ret, err := service.DeleteApplicationSecret(t.Context(), tt.params)
+			if tt.isError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, ret)
+		})
+	}
+}

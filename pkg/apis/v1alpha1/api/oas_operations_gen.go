@@ -8,6 +8,7 @@ type OperationName = string
 const (
 	CreateApplicationOperation       OperationName = "CreateApplication"
 	CreateApplicationSecretOperation OperationName = "CreateApplicationSecret"
+	DeleteApplicationSecretOperation OperationName = "DeleteApplicationSecret"
 	GetApplicationOperation          OperationName = "GetApplication"
 	GetApplicationSecretOperation    OperationName = "GetApplicationSecret"
 	GetApplicationsOperation         OperationName = "GetApplications"

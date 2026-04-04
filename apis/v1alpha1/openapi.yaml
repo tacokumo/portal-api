@@ -374,6 +374,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Secret"
+    delete:
+      tags:
+        - "applications"
+      summary: "Delete Application Secret"
+      description: "特定のアプリケーションのシークレットを削除するAPI"
+      operationId: "DeleteApplicationSecret"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '204':
+          description: "アプリケーションシークレットの削除成功"
+        '404':
+          description: "シークレットが見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     BearerAuth:

@@ -371,6 +371,79 @@ func TestE2E_CSRFProtection_InvalidCSRFToken(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode, "不正なCSRFトークンは403を返すべき")
 }
 
+// --- CORS テスト ---
+
+func TestE2E_CORS_PreflightReturns204(t *testing.T) {
+	req, err := http.NewRequest("OPTIONS", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+	req.Header.Set("Origin", "http://localhost:3000")
+	req.Header.Set("Access-Control-Request-Method", "POST")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode, "プリフライトリクエストは204を返すべき")
+	assert.Equal(t, "http://localhost:3000", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.NotEmpty(t, resp.Header.Get("Access-Control-Allow-Methods"), "Allow-Methodsヘッダーが存在するべき")
+	assert.NotEmpty(t, resp.Header.Get("Access-Control-Allow-Headers"), "Allow-Headersヘッダーが存在するべき")
+	assert.NotEmpty(t, resp.Header.Get("Access-Control-Max-Age"), "Max-Ageヘッダーが存在するべき")
+}
+
+func TestE2E_CORS_AllowedOriginSetsHeader(t *testing.T) {
+	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+	req.Header.Set("Origin", "http://localhost:3000")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "http://localhost:3000", resp.Header.Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "true", resp.Header.Get("Access-Control-Allow-Credentials"))
+}
+
+func TestE2E_CORS_DisallowedOriginNoHeader(t *testing.T) {
+	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+	req.Header.Set("Origin", "http://evil.example.com")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"), "不許可オリジンにはCORSヘッダーが設定されないべき")
+}
+
+func TestE2E_CORS_WildcardPatternMatch(t *testing.T) {
+	// docker-compose.yaml: CORS_ALLOWED_ORIGINS には http://localhost:* が含まれる
+	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+	req.Header.Set("Origin", "http://localhost:9999")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "http://localhost:9999", resp.Header.Get("Access-Control-Allow-Origin"))
+}
+
+func TestE2E_CORS_NoOriginNoHeaders(t *testing.T) {
+	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+	// Originヘッダーなし
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"), "Originなしの場合CORSヘッダーは不要")
+}
+
 // --- Rate Limit テスト ---
 
 func TestE2E_RateLimit_HeadersPresent(t *testing.T) {

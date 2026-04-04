@@ -83,6 +83,10 @@ func (s *Server) Start(ctx context.Context) error {
 	)
 
 	// グローバルミドルウェア適用（段階的統合）
+	// CORSミドルウェア（プリフライト処理のため最初に適用）
+	corsMw := middleware.NewCORSMiddleware(cfg.Security.CORS)
+	e.Use(corsMw.Handle())
+
 	// レート制限ミドルウェア（全体に適用）
 	e.Use(rateLimitMw.IPRateLimit())
 
@@ -98,6 +102,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.logger.InfoContext(ctx, "middleware enabled",
 		"auth_middleware", "configured",
+		"cors", "enabled",
 		"rate_limit", "enabled",
 		"audit_log", "enabled",
 		"csrf", "enabled",

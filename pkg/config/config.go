@@ -73,7 +73,11 @@ type RateLimitConfig struct {
 }
 
 type CORSConfig struct {
-	AllowedOrigins []string `yaml:"allowed_origins" env:"CORS_ALLOWED_ORIGINS" env-separator:","`
+	AllowedOrigins   []string `yaml:"allowed_origins" env:"CORS_ALLOWED_ORIGINS" env-separator:","`
+	AllowedMethods   []string `yaml:"allowed_methods" env:"CORS_ALLOWED_METHODS" env-separator:","`
+	AllowedHeaders   []string `yaml:"allowed_headers" env:"CORS_ALLOWED_HEADERS" env-separator:","`
+	AllowCredentials bool     `yaml:"allow_credentials" env:"CORS_ALLOW_CREDENTIALS" default:"true"`
+	MaxAge           int      `yaml:"max_age" env:"CORS_MAX_AGE" default:"86400"`
 }
 
 // Validateは validator.goに移動するため、ここでは一時的な実装を保持

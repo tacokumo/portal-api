@@ -1,0 +1,26 @@
+desc: "CORS保��が正しく機能すること"
+# NOTE: runnのHTTPランナーはOriginヘッダーを送信しないため、
+# CORS固有のヘッダー検証はGo E2Eテスト(e2e_test.go)で実施する。
+# ここではOriginなしの場合にCORSヘッダーが設定されないことを確認する。
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  no_origin_no_cors_headers:
+    desc: "Originヘッダーなしの場合CORS��ッダーが設定されないこと"
+    req:
+      /health/liveness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200 &&
+      len(current.res.headers["Access-Control-Allow-Origin"]) == 0
+  no_origin_no_credentials_header:
+    desc: "Originヘッダーなしの場合Access-Control-Allow-Credentialsが設定され��いこと"
+    req:
+      /health/liveness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200 &&
+      len(current.res.headers["Access-Control-Allow-Credentials"]) == 0

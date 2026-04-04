@@ -370,3 +370,41 @@ func TestE2E_CSRFProtection_InvalidCSRFToken(t *testing.T) {
 
 	assert.Equal(t, http.StatusForbidden, resp.StatusCode, "不正なCSRFトークンは403を返すべき")
 }
+
+// --- Rate Limit テスト ---
+
+func TestE2E_RateLimit_HeadersPresent(t *testing.T) {
+	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.NotEmpty(t, resp.Header.Get("X-RateLimit-Limit"), "X-RateLimit-Limitヘッダーが存在するべき")
+	assert.NotEmpty(t, resp.Header.Get("X-RateLimit-Remaining"), "X-RateLimit-Remainingヘッダーが存在するべき")
+	assert.NotEmpty(t, resp.Header.Get("X-RateLimit-Reset"), "X-RateLimit-Resetヘッダーが存在するべき")
+}
+
+func TestE2E_RateLimit_ZZ_ExceedsLimit(t *testing.T) {
+	// NOTE: このテストはrate limitを使い切るため、必ず最後に実行する（ZZプレフィックス）
+	// レート制限を超えるまでリクエストを送信
+	// docker-compose.yaml: RATE_LIMIT_IP_BURST=100
+	var got429 bool
+	for i := 0; i < 500; i++ {
+		req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
+		require.NoError(t, err)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		resp.Body.Close()
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			got429 = true
+			assert.NotEmpty(t, resp.Header.Get("Retry-After"), "429レスポンスにRetry-Afterヘッダーが存在するべき")
+			break
+		}
+	}
+	assert.True(t, got429, "十分なリクエストで429 Too Many Requestsが返るべき")
+}

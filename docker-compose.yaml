@@ -24,6 +24,12 @@ services:
       - JWT_PUBLIC_KEY_PATH=/etc/secrets/jwt-public-key.pem
       - JWT_ACCESS_TOKEN_DURATION=1h
       - JWT_REFRESH_TOKEN_DURATION=8h
+      - RATE_LIMIT_IP_RATE=120
+      - RATE_LIMIT_IP_BURST=100
+      - RATE_LIMIT_USER_RATE=300
+      - RATE_LIMIT_USER_BURST=60
+      - RATE_LIMIT_PERIOD_SECONDS=60
+      - RATE_LIMIT_FAIL_OPEN=true
     volumes:
       - .:/src
       - go_mod_cache:/go/pkg/mod

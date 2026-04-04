@@ -1,0 +1,16 @@
+desc: "レート制限が正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  rate_limit_headers_on_health:
+    desc: "ヘルスチェックのレスポンスにレート制限ヘッダーが含まれること"
+    req:
+      /health/liveness:
+        get:
+          body: null
+    test: |
+      current.res.status == 200 &&
+      current.res.headers["X-Ratelimit-Limit"] != null &&
+      current.res.headers["X-Ratelimit-Remaining"] != null &&
+      current.res.headers["X-Ratelimit-Reset"] != null

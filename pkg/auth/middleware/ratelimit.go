@@ -2,40 +2,58 @@ package middleware
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v5"
-	"github.com/tacokumo/portal-api/pkg/auth/session"
-	"golang.org/x/time/rate"
+	"github.com/tacokumo/portal-api/pkg/config"
 )
 
-// RateLimitMiddleware レート制限ミドルウェア
+// RateLimitMiddleware provides distributed rate limiting using a RateLimitStore backend.
 type RateLimitMiddleware struct {
-	sessionManager session.Manager
-	ipLimiter      *rate.Limiter  // IP単位のグローバル制限
-	userLimiter    *rate.Limiter  // ユーザー単位の制限
+	store  RateLimitStore
+	config config.RateLimitConfig
+	logger *slog.Logger
 }
 
-// NewRateLimitMiddleware レート制限ミドルウェアを作成
-func NewRateLimitMiddleware(sessionManager session.Manager) *RateLimitMiddleware {
+// NewRateLimitMiddleware creates a rate limit middleware backed by the given store.
+func NewRateLimitMiddleware(store RateLimitStore, cfg config.RateLimitConfig) *RateLimitMiddleware {
 	return &RateLimitMiddleware{
-		sessionManager: sessionManager,
-		// IP単位: 1秒間に10リクエスト、バースト20
-		ipLimiter: rate.NewLimiter(rate.Every(100*time.Millisecond), 20),
-		// ユーザー単位: 1秒間に50リクエスト、バースト100
-		userLimiter: rate.NewLimiter(rate.Every(20*time.Millisecond), 100),
+		store:  store,
+		config: cfg,
+		logger: slog.Default(),
 	}
 }
 
-// IPRateLimit IP単位のレート制限
+// IPRateLimit returns middleware that enforces per-IP rate limiting.
 func (m *RateLimitMiddleware) IPRateLimit() echo.MiddlewareFunc {
+	period := time.Duration(m.config.PeriodSeconds) * time.Second
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			clientIP := c.RealIP()
+			key := "ip:" + clientIP
 
-			// IPごとのレート制限チェック（簡易版）
-			if !m.ipLimiter.Allow() {
+			result, err := m.store.Allow(
+				c.Request().Context(),
+				key,
+				m.config.IPRate,
+				m.config.IPBurst,
+				period,
+			)
+			if err != nil {
+				m.logger.Warn("rate limit check failed", "error", err, "ip", clientIP)
+				if m.config.FailOpen {
+					return next(c)
+				}
+				return echo.NewHTTPError(http.StatusServiceUnavailable, "rate limit service unavailable")
+			}
+
+			setRateLimitHeaders(c, result)
+
+			if !result.Allowed {
 				return echo.NewHTTPError(http.StatusTooManyRequests,
 					fmt.Sprintf("Rate limit exceeded for IP: %s", clientIP))
 			}
@@ -45,24 +63,60 @@ func (m *RateLimitMiddleware) IPRateLimit() echo.MiddlewareFunc {
 	}
 }
 
-// UserRateLimit ユーザー単位のレート制限
+// UserRateLimit returns middleware that enforces per-user rate limiting.
+// Unauthenticated requests are passed through (IP-level limiting still applies).
 func (m *RateLimitMiddleware) UserRateLimit() echo.MiddlewareFunc {
+	period := time.Duration(m.config.PeriodSeconds) * time.Second
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			// 認証コンテキストから情報取得
 			authCtx, err := GetAuthContext(c)
 			if err != nil {
-				// 認証されていない場合は IP制限のみ
+				// Not authenticated — skip user rate limit
 				return next(c)
 			}
 
-			// ユーザーごとのレート制限チェック（簡易版）
-			if !m.userLimiter.Allow() {
+			key := "user:" + authCtx.User.Login
+
+			result, err := m.store.Allow(
+				c.Request().Context(),
+				key,
+				m.config.UserRate,
+				m.config.UserBurst,
+				period,
+			)
+			if err != nil {
+				m.logger.Warn("rate limit check failed", "error", err, "user", authCtx.User.Login)
+				if m.config.FailOpen {
+					return next(c)
+				}
+				return echo.NewHTTPError(http.StatusServiceUnavailable, "rate limit service unavailable")
+			}
+
+			setRateLimitHeaders(c, result)
+
+			if !result.Allowed {
 				return echo.NewHTTPError(http.StatusTooManyRequests,
 					fmt.Sprintf("Rate limit exceeded for user: %s", authCtx.User.Login))
 			}
 
 			return next(c)
 		}
+	}
+}
+
+// setRateLimitHeaders writes standard rate limit headers to the response.
+func setRateLimitHeaders(c *echo.Context, result *RateLimitResult) {
+	h := c.Response().Header()
+	h.Set("X-RateLimit-Limit", strconv.Itoa(result.Limit))
+	h.Set("X-RateLimit-Remaining", strconv.Itoa(result.Remaining))
+	h.Set("X-RateLimit-Reset", strconv.FormatInt(result.ResetAt.Unix(), 10))
+
+	if !result.Allowed {
+		retryAfterSec := int64(result.RetryAfter.Seconds())
+		if retryAfterSec < 1 {
+			retryAfterSec = 1
+		}
+		h.Set("Retry-After", strconv.FormatInt(retryAfterSec, 10))
 	}
 }

@@ -17,8 +17,9 @@ type ValkeyManager struct {
 	ctx    context.Context
 }
 
-// NewValkeyManager 新しいValkeyセッションマネージャーを作成
-func NewValkeyManager(cfg config.ValkeyConfig) (*ValkeyManager, error) {
+// NewValkeyClient creates a Valkey client and verifies the connection.
+// The returned client is safe for concurrent use and can be shared across components.
+func NewValkeyClient(cfg config.ValkeyConfig) (valkey.Client, error) {
 	client, err := valkey.NewClient(valkey.ClientOption{
 		InitAddress: []string{cfg.Address},
 		Password:    cfg.Password,
@@ -28,16 +29,49 @@ func NewValkeyManager(cfg config.ValkeyConfig) (*ValkeyManager, error) {
 		return nil, fmt.Errorf("failed to create Valkey client: %w", err)
 	}
 
-	// 接続テスト
 	ctx := context.Background()
 	if err := client.Do(ctx, client.B().Ping().Build()).Error(); err != nil {
+		client.Close()
 		return nil, fmt.Errorf("failed to connect to Valkey: %w", err)
+	}
+
+	return client, nil
+}
+
+// NewValkeyManager 新しいValkeyセッションマネージャーを作成
+func NewValkeyManager(cfg config.ValkeyConfig) (*ValkeyManager, error) {
+	client, err := NewValkeyClient(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &ValkeyManager{
 		client: client,
-		ctx:    ctx,
+		ctx:    context.Background(),
 	}, nil
+}
+
+// NewValkeyManagerWithClient creates a ValkeyManager using an existing client.
+// The caller is responsible for closing the client when done.
+// Close() on the returned manager is a no-op to avoid double-close.
+func NewValkeyManagerWithClient(client valkey.Client) *sharedValkeyManager {
+	return &sharedValkeyManager{
+		ValkeyManager: ValkeyManager{
+			client: client,
+			ctx:    context.Background(),
+		},
+	}
+}
+
+// sharedValkeyManager wraps ValkeyManager but does not close the client,
+// because ownership belongs to the caller.
+type sharedValkeyManager struct {
+	ValkeyManager
+}
+
+// Close is a no-op because the client lifecycle is managed externally.
+func (s *sharedValkeyManager) Close() error {
+	return nil
 }
 
 // CreateSession セッション作成

@@ -46,12 +46,14 @@ func (s *Server) Start(ctx context.Context) error {
 		return err
 	}
 
-	sessionManager, err := session.NewManager(cfg.Auth.Valkey)
+	valkeyClient, err := session.NewValkeyClient(cfg.Auth.Valkey)
 	if err != nil {
-		s.logger.ErrorContext(ctx, "failed to create session manager", "error", err)
+		s.logger.ErrorContext(ctx, "failed to create Valkey client", "error", err)
 		return err
 	}
-	defer sessionManager.Close()
+	defer valkeyClient.Close()
+
+	sessionManager := session.NewManagerWithClient(valkeyClient)
 
 	// 認証・認可ミドルウェア
 	authMw, err := middleware.NewAuthMiddleware(*cfg, jwtManager, sessionManager)
@@ -62,7 +64,8 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// 追加ミドルウェア
 	csrfMw := middleware.NewCSRFMiddleware(sessionManager, jwtManager, true) // HTTPS前提
-	rateLimitMw := middleware.NewRateLimitMiddleware(sessionManager)
+	rateLimitStore := middleware.NewValkeyRateLimitStore(valkeyClient)
+	rateLimitMw := middleware.NewRateLimitMiddleware(rateLimitStore, cfg.Security.RateLimit)
 	auditMw := middleware.NewAuditMiddleware()
 	rbacMw := middleware.NewRBACMiddleware(true) // strictMode有効
 

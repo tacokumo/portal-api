@@ -55,7 +55,21 @@ type ValkeyConfig struct {
 }
 
 type SecurityConfig struct {
-	CORS CORSConfig `yaml:"cors"`
+	CORS      CORSConfig      `yaml:"cors"`
+	RateLimit RateLimitConfig `yaml:"rate_limit"`
+}
+
+type RateLimitConfig struct {
+	// IP rate limiting: requests per period
+	IPRate  int `yaml:"ip_rate" env:"RATE_LIMIT_IP_RATE" default:"60"`
+	IPBurst int `yaml:"ip_burst" env:"RATE_LIMIT_IP_BURST" default:"20"`
+	// User rate limiting
+	UserRate  int `yaml:"user_rate" env:"RATE_LIMIT_USER_RATE" default:"300"`
+	UserBurst int `yaml:"user_burst" env:"RATE_LIMIT_USER_BURST" default:"60"`
+	// Period in seconds (shared by IP and user limits)
+	PeriodSeconds int `yaml:"period_seconds" env:"RATE_LIMIT_PERIOD_SECONDS" default:"60"`
+	// Behavior on Valkey failure: true = allow request, false = reject with 503
+	FailOpen bool `yaml:"fail_open" env:"RATE_LIMIT_FAIL_OPEN" default:"true"`
 }
 
 type CORSConfig struct {

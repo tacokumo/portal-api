@@ -281,6 +281,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Application"
+    delete:
+      tags:
+        - "applications"
+      summary: "Delete Application"
+      description: "特定のアプリケーションを削除するAPI"
+      operationId: "DeleteApplication"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '204':
+          description: "アプリケーションの削除成功"
+        '404':
+          description: "アプリケーションが見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /v1alpha1/applications/{name}/secret:
     get:
       tags:

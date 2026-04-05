@@ -283,12 +283,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 					if len(elem) == 0 {
 						switch r.Method {
+						case "DELETE":
+							s.handleDeleteApplicationRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
 						case "GET":
 							s.handleGetApplicationRequest([1]string{
 								args[0],
 							}, elemIsEscaped, w, r)
 						default:
-							s.notAllowed(w, r, "GET")
+							s.notAllowed(w, r, "DELETE,GET")
 						}
 
 						return
@@ -701,6 +705,15 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 					if len(elem) == 0 {
 						switch method {
+						case "DELETE":
+							r.name = DeleteApplicationOperation
+							r.summary = "Delete Application"
+							r.operationID = "DeleteApplication"
+							r.operationGroup = ""
+							r.pathPattern = "/v1alpha1/applications/{name}"
+							r.args = args
+							r.count = 1
+							return r, true
 						case "GET":
 							r.name = GetApplicationOperation
 							r.summary = "Get Application"

@@ -31,6 +31,15 @@ func (UnimplementedHandler) CreateApplicationSecret(ctx context.Context, req *Cr
 	return r, ht.ErrNotImplemented
 }
 
+// DeleteApplication implements DeleteApplication operation.
+//
+// 特定のアプリケーションを削除するAPI.
+//
+// DELETE /v1alpha1/applications/{name}
+func (UnimplementedHandler) DeleteApplication(ctx context.Context, params DeleteApplicationParams) (r DeleteApplicationRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // DeleteApplicationSecret implements DeleteApplicationSecret operation.
 //
 // 特定のアプリケーションのシークレットを削除するAPI.

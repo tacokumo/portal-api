@@ -39,6 +39,7 @@ func findAuthorization(h http.Header, prefix string) (string, bool) {
 var operationRolesBearerAuth = map[string][]string{
 	CreateApplicationOperation:       []string{},
 	CreateApplicationSecretOperation: []string{},
+	DeleteApplicationOperation:       []string{},
 	DeleteApplicationSecretOperation: []string{},
 	GetApplicationOperation:          []string{},
 	GetApplicationSecretOperation:    []string{},
@@ -66,6 +67,7 @@ func (s *Server) securityBearerAuth(ctx context.Context, operationName Operation
 var operationRolesCookieAuth = map[string][]string{
 	CreateApplicationOperation:       []string{},
 	CreateApplicationSecretOperation: []string{},
+	DeleteApplicationOperation:       []string{},
 	DeleteApplicationSecretOperation: []string{},
 	GetApplicationOperation:          []string{},
 	GetApplicationSecretOperation:    []string{},

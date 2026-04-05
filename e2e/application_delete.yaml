@@ -1,0 +1,14 @@
+desc: "Application削除APIが正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  invalid_bearer_delete_returns_non_200:
+    desc: "不正なBearerトークンでのApplication削除リクエストは成功しないこと"
+    req:
+      /v1alpha1/applications/nonexistent-app:
+        delete:
+          header:
+            Authorization: "Bearer invalid-token"
+    test: |
+      current.res.status != 200 && current.res.status != 204

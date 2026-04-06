@@ -1,0 +1,20 @@
+desc: "Application更新APIが正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  invalid_bearer_update_returns_non_200:
+    desc: "不正なBearerトークンでのApplication更新リクエストは成功しないこと"
+    req:
+      /v1alpha1/applications/nonexistent-app:
+        put:
+          header:
+            Authorization: "Bearer invalid-token"
+            Content-Type: "application/json"
+          body:
+            application/json:
+              repository_url: "https://github.com/tacokumo/test.git"
+              appconfig_path: "apps/test"
+              appconfig_branch: "main"
+    test: |
+      current.res.status != 200

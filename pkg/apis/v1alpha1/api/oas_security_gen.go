@@ -44,6 +44,7 @@ var operationRolesBearerAuth = map[string][]string{
 	GetApplicationOperation:          []string{},
 	GetApplicationSecretOperation:    []string{},
 	GetApplicationsOperation:         []string{},
+	UpdateApplicationOperation:       []string{},
 	UpdateApplicationSecretOperation: []string{},
 }
 
@@ -74,6 +75,7 @@ var operationRolesCookieAuth = map[string][]string{
 	GetApplicationsOperation:         []string{},
 	GetCSRFTokenOperation:            []string{},
 	LogoutOperation:                  []string{},
+	UpdateApplicationOperation:       []string{},
 	UpdateApplicationSecretOperation: []string{},
 }
 

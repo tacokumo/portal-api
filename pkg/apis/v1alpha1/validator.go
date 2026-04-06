@@ -187,6 +187,19 @@ func ValidateCreateApplicationRequest(req *api.CreateApplicationRequest) error {
 	return nil
 }
 
+func ValidateUpdateApplicationRequest(req *api.UpdateApplicationRequest) error {
+	if err := ValidateRepositoryURL(req.RepositoryURL); err != nil {
+		return err
+	}
+	if err := ValidateAppconfigPath(req.AppconfigPath); err != nil {
+		return err
+	}
+	if err := ValidateAppconfigBranch(req.AppconfigBranch); err != nil {
+		return err
+	}
+	return nil
+}
+
 func ValidateCreateSecretRequest(req *api.CreateSecretRequest) error {
 	if len(req.Items) == 0 {
 		return validationError("at least one secret item is required")

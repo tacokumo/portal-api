@@ -93,6 +93,40 @@ func (s *ApplicationService) CreateApplication(
 	}, nil
 }
 
+func (s *ApplicationService) UpdateApplication(
+	ctx context.Context,
+	req *api.UpdateApplicationRequest,
+	params api.UpdateApplicationParams,
+) (api.UpdateApplicationRes, error) {
+	if err := ValidateUpdateApplicationRequest(req); err != nil {
+		return nil, err
+	}
+
+	key := types.NamespacedName{
+		Namespace: s.config.PortalName,
+		Name:      params.Name,
+	}
+	app := tacokumov1alpha1.Application{}
+	if err := s.client.Get(ctx, key, &app); err != nil {
+		return nil, err
+	}
+
+	app.Spec.ReleaseTemplate.Repo.URL = req.RepositoryURL
+	app.Spec.ReleaseTemplate.AppConfigPath = req.AppconfigPath
+	app.Spec.ReleaseTemplate.AppConfigBranch = req.AppconfigBranch
+
+	if err := s.client.Update(ctx, &app); err != nil {
+		return nil, err
+	}
+
+	return &api.Application{
+		Name:            app.Name,
+		AppconfigPath:   app.Spec.ReleaseTemplate.AppConfigPath,
+		RepositoryURL:   app.Spec.ReleaseTemplate.Repo.URL,
+		AppconfigBranch: app.Spec.ReleaseTemplate.AppConfigBranch,
+	}, nil
+}
+
 func (s *ApplicationService) DeleteApplication(
 	ctx context.Context,
 	params api.DeleteApplicationParams,

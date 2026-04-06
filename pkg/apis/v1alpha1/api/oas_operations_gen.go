@@ -20,5 +20,6 @@ const (
 	GitHubOAuthLoginOperation        OperationName = "GitHubOAuthLogin"
 	LogoutOperation                  OperationName = "Logout"
 	RefreshTokenOperation            OperationName = "RefreshToken"
+	UpdateApplicationOperation       OperationName = "UpdateApplication"
 	UpdateApplicationSecretOperation OperationName = "UpdateApplicationSecret"
 )

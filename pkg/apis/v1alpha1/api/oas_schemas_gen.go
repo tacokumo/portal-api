@@ -92,6 +92,8 @@ func (s *Application) SetAppconfigBranch(val string) {
 	s.AppconfigBranch = val
 }
 
+func (*Application) updateApplicationRes() {}
+
 // Ref: #/components/schemas/AuthResponse
 type AuthResponse struct {
 	Success   bool      `json:"success"`
@@ -310,6 +312,7 @@ func (*Error) deleteApplicationRes()       {}
 func (*Error) deleteApplicationSecretRes() {}
 func (*Error) gitHubOAuthCallbackRes()     {}
 func (*Error) refreshTokenRes()            {}
+func (*Error) updateApplicationRes()       {}
 
 // ErrorStatusCode wraps Error with StatusCode.
 type ErrorStatusCode struct {
@@ -519,6 +522,43 @@ func (s *TokenPair) SetExpiresAt(val time.Time) {
 }
 
 func (*TokenPair) refreshTokenRes() {}
+
+// Ref: #/components/schemas/UpdateApplicationRequest
+type UpdateApplicationRequest struct {
+	RepositoryURL   string `json:"repository_url"`
+	AppconfigPath   string `json:"appconfig_path"`
+	AppconfigBranch string `json:"appconfig_branch"`
+}
+
+// GetRepositoryURL returns the value of RepositoryURL.
+func (s *UpdateApplicationRequest) GetRepositoryURL() string {
+	return s.RepositoryURL
+}
+
+// GetAppconfigPath returns the value of AppconfigPath.
+func (s *UpdateApplicationRequest) GetAppconfigPath() string {
+	return s.AppconfigPath
+}
+
+// GetAppconfigBranch returns the value of AppconfigBranch.
+func (s *UpdateApplicationRequest) GetAppconfigBranch() string {
+	return s.AppconfigBranch
+}
+
+// SetRepositoryURL sets the value of RepositoryURL.
+func (s *UpdateApplicationRequest) SetRepositoryURL(val string) {
+	s.RepositoryURL = val
+}
+
+// SetAppconfigPath sets the value of AppconfigPath.
+func (s *UpdateApplicationRequest) SetAppconfigPath(val string) {
+	s.AppconfigPath = val
+}
+
+// SetAppconfigBranch sets the value of AppconfigBranch.
+func (s *UpdateApplicationRequest) SetAppconfigBranch(val string) {
+	s.AppconfigBranch = val
+}
 
 // Ref: #/components/schemas/User
 type User struct {

@@ -444,6 +444,78 @@ func TestE2E_CORS_NoOriginNoHeaders(t *testing.T) {
 	assert.Empty(t, resp.Header.Get("Access-Control-Allow-Origin"), "Originなしの場合CORSヘッダーは不要")
 }
 
+// --- Application更新 テスト ---
+
+func TestE2E_ApplicationUpdate_Unauthorized(t *testing.T) {
+	req, err := http.NewRequest("PUT", baseURL(t)+"/v1alpha1/applications/test-app", strings.NewReader(`{"repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"main"}`))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
+}
+
+func TestE2E_ApplicationUpdate_ValidationHttpURL(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-update-1")
+	require.NoError(t, err)
+
+	body := `{"repository_url":"http://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"main"}`
+	req, err := http.NewRequest("PUT", baseURL(t)+"/v1alpha1/applications/test-app", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "httpスキームは400を返すべき")
+}
+
+func TestE2E_ApplicationUpdate_ValidationPathTraversal(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-update-2")
+	require.NoError(t, err)
+
+	body := `{"repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"../etc/passwd","appconfig_branch":"main"}`
+	req, err := http.NewRequest("PUT", baseURL(t)+"/v1alpha1/applications/test-app", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "パストラバーサルは400を返すべき")
+}
+
+func TestE2E_ApplicationUpdate_ValidationInvalidBranch(t *testing.T) {
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-update-3")
+	require.NoError(t, err)
+
+	body := `{"repository_url":"https://github.com/tacokumo/test.git","appconfig_path":"apps/test","appconfig_branch":"branch..name"}`
+	req, err := http.NewRequest("PUT", baseURL(t)+"/v1alpha1/applications/test-app", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode, "不正なブランチ名は400を返すべき")
+}
+
 // --- Rate Limit テスト ---
 
 func TestE2E_RateLimit_HeadersPresent(t *testing.T) {

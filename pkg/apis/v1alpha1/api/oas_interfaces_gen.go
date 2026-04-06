@@ -16,3 +16,7 @@ type GitHubOAuthCallbackRes interface {
 type RefreshTokenRes interface {
 	refreshTokenRes()
 }
+
+type UpdateApplicationRes interface {
+	updateApplicationRes()
+}

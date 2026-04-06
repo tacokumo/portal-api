@@ -92,6 +92,12 @@ type Handler interface {
 	//
 	// POST /auth/refresh
 	RefreshToken(ctx context.Context, req *RefreshTokenReq) (RefreshTokenRes, error)
+	// UpdateApplication implements UpdateApplication operation.
+	//
+	// 特定のアプリケーションを更新するAPI.
+	//
+	// PUT /v1alpha1/applications/{name}
+	UpdateApplication(ctx context.Context, req *UpdateApplicationRequest, params UpdateApplicationParams) (UpdateApplicationRes, error)
 	// UpdateApplicationSecret implements UpdateApplicationSecret operation.
 	//
 	// 特定のアプリケーションのシークレットを更新するAPI.

@@ -447,6 +447,72 @@ func decodeGitHubOAuthCallbackParams(args [0]string, argsEscaped bool, r *http.R
 	return params, nil
 }
 
+// UpdateApplicationParams is parameters of UpdateApplication operation.
+type UpdateApplicationParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackUpdateApplicationParams(packed middleware.Parameters) (params UpdateApplicationParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeUpdateApplicationParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateApplicationParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // UpdateApplicationSecretParams is parameters of UpdateApplicationSecret operation.
 type UpdateApplicationSecretParams struct {
 	// アプリケーション名.

@@ -337,6 +337,193 @@ func TestApplicationService_CreateApplication(t *testing.T) {
 	}
 }
 
+func TestApplicationService_UpdateApplication(t *testing.T) {
+	tests := []struct {
+		name     string
+		config   *config.Config
+		clientFn func() client.Client
+		req      *api.UpdateApplicationRequest
+		params   api.UpdateApplicationParams
+		isError  bool
+	}{
+		{
+			name: "正常に更新できるケース",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				c := fake.NewClientBuilder().WithScheme(scheme).Build()
+				err = c.Create(t.Context(), &tacokumov1alpha1.Application{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "example-app",
+						Namespace: "portal-namespace",
+					},
+					Spec: tacokumov1alpha1.ApplicationSpec{
+						ReleaseTemplate: tacokumov1alpha1.ReleaseSpec{
+							AppConfigPath:   "apps/example-app",
+							AppConfigBranch: "main",
+							Repo: tacokumov1alpha1.RepositoryRef{
+								URL: "https://github.com/tacokumo/tacokumo-bot.git",
+							},
+						},
+					},
+				})
+				assert.NoError(t, err)
+				return c
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "https://github.com/tacokumo/updated-app.git",
+				AppconfigPath:   "apps/updated-path",
+				AppconfigBranch: "develop",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "example-app",
+			},
+			isError: false,
+		},
+		{
+			name: "存在しないApplicationを更新しようとした場合、エラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "https://github.com/tacokumo/test.git",
+				AppconfigPath:   "apps/test",
+				AppconfigBranch: "main",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "non-existent-app",
+			},
+			isError: true,
+		},
+		{
+			name: "リポジトリURLがhttpの場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "http://github.com/tacokumo/test.git",
+				AppconfigPath:   "apps/test",
+				AppconfigBranch: "main",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
+			name: "リポジトリURLがプライベートIPの場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "https://127.0.0.1/repo",
+				AppconfigPath:   "apps/test",
+				AppconfigBranch: "main",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
+			name: "appconfigPathにパストラバーサルが含まれる場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "https://github.com/tacokumo/test.git",
+				AppconfigPath:   "../etc/passwd",
+				AppconfigBranch: "main",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+		{
+			name: "不正なブランチ名の場合バリデーションエラーとなること",
+			config: &config.Config{
+				PortalName: "portal-namespace",
+			},
+			clientFn: func() client.Client {
+				scheme, err := k8sclient.NewScheme()
+				assert.NoError(t, err)
+				return fake.NewClientBuilder().WithScheme(scheme).Build()
+			},
+			req: &api.UpdateApplicationRequest{
+				RepositoryURL:   "https://github.com/tacokumo/test.git",
+				AppconfigPath:   "apps/test",
+				AppconfigBranch: "branch..name",
+			},
+			params: api.UpdateApplicationParams{
+				Name: "example-app",
+			},
+			isError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := tt.clientFn()
+			service := &ApplicationService{
+				config: tt.config,
+				client: c,
+			}
+			ret, err := service.UpdateApplication(t.Context(), tt.req, tt.params)
+			if tt.isError {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.NotNil(t, ret)
+
+			app, ok := ret.(*api.Application)
+			assert.True(t, ok)
+			assert.Equal(t, tt.params.Name, app.Name)
+			assert.Equal(t, tt.req.RepositoryURL, app.RepositoryURL)
+			assert.Equal(t, tt.req.AppconfigPath, app.AppconfigPath)
+			assert.Equal(t, tt.req.AppconfigBranch, app.AppconfigBranch)
+
+			// k8sリソースが実際に更新されていることを確認
+			k8sApp := tacokumov1alpha1.Application{}
+			err = c.Get(t.Context(), types.NamespacedName{
+				Namespace: tt.config.PortalName,
+				Name:      tt.params.Name,
+			}, &k8sApp)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.req.RepositoryURL, k8sApp.Spec.ReleaseTemplate.Repo.URL)
+			assert.Equal(t, tt.req.AppconfigPath, k8sApp.Spec.ReleaseTemplate.AppConfigPath)
+			assert.Equal(t, tt.req.AppconfigBranch, k8sApp.Spec.ReleaseTemplate.AppConfigBranch)
+		})
+	}
+}
+
 func TestApplicationService_DeleteApplication(t *testing.T) {
 	tests := []struct {
 		name     string

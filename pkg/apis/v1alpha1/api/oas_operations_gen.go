@@ -11,6 +11,7 @@ const (
 	DeleteApplicationOperation       OperationName = "DeleteApplication"
 	DeleteApplicationSecretOperation OperationName = "DeleteApplicationSecret"
 	GetApplicationOperation          OperationName = "GetApplication"
+	GetApplicationLogsOperation      OperationName = "GetApplicationLogs"
 	GetApplicationSecretOperation    OperationName = "GetApplicationSecret"
 	GetApplicationsOperation         OperationName = "GetApplications"
 	GetCSRFTokenOperation            OperationName = "GetCSRFToken"

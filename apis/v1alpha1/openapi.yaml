@@ -348,6 +348,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /v1alpha1/applications/{name}/logs:
+    get:
+      tags:
+        - "applications"
+      summary: "Get Application Logs"
+      description: "特定のアプリケーションのPodログを取得するAPI"
+      operationId: "GetApplicationLogs"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+        - name: "tail_lines"
+          in: "query"
+          description: "取得する末尾行数 (デフォルト: 100)"
+          required: false
+          schema:
+            type: "integer"
+            format: "int32"
+            default: 100
+            minimum: 1
+            maximum: 10000
+        - name: "since_seconds"
+          in: "query"
+          description: "直近N秒分のログを取得"
+          required: false
+          schema:
+            type: "integer"
+            format: "int64"
+            minimum: 1
+        - name: "container"
+          in: "query"
+          description: "コンテナ名（複数コンテナPod用）"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        '200':
+          description: "アプリケーションログの取得成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApplicationLogs"
+        '404':
+          description: "アプリケーションが見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '503':
+          description: "Kubernetesクラスタに接続できない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /v1alpha1/applications/{name}/secret:
     get:
       tags:
@@ -584,6 +647,31 @@ components:
         - repository_url
         - appconfig_path
         - appconfig_branch
+    ApplicationLogs:
+      type: object
+      properties:
+        application_name:
+          type: string
+        pod_logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/PodLog"
+      required:
+        - application_name
+        - pod_logs
+    PodLog:
+      type: object
+      properties:
+        pod_name:
+          type: string
+        container_name:
+          type: string
+        logs:
+          type: string
+      required:
+        - pod_name
+        - container_name
+        - logs
     CreateSecretRequest:
       type: object
       properties:

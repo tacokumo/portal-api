@@ -12,6 +12,7 @@ import (
 	"github.com/tacokumo/portal-api/pkg/auth/session"
 	"github.com/tacokumo/portal-api/pkg/config"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -19,12 +20,14 @@ type Handler struct {
 	*HealthCheckService
 	*ApplicationService
 	*ApplicationSecretService
+	*ApplicationLogService
 	*AuthService
 }
 
 func NewHandler(
 	cfg *config.Config,
 	client client.Client,
+	clientset kubernetes.Interface,
 	jwtManager *auth.JWTManager,
 	sessionManager session.Manager,
 	githubClient github.AuthProvider,
@@ -34,6 +37,7 @@ func NewHandler(
 		HealthCheckService:       &HealthCheckService{},
 		ApplicationService:       &ApplicationService{config: cfg, client: client},
 		ApplicationSecretService: NewApplicationSecretService(cfg, client),
+		ApplicationLogService:    &ApplicationLogService{config: cfg, client: client, clientset: clientset},
 		AuthService: NewAuthService(
 			cfg,
 			githubClient,

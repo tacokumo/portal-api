@@ -9,6 +9,10 @@ type DeleteApplicationSecretRes interface {
 	deleteApplicationSecretRes()
 }
 
+type GetApplicationLogsRes interface {
+	getApplicationLogsRes()
+}
+
 type GitHubOAuthCallbackRes interface {
 	gitHubOAuthCallbackRes()
 }

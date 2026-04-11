@@ -26,6 +26,12 @@ test-e2e:
 	go tool runn run e2e/**/*.yaml --verbose
 	E2E_BASE_URL=http://localhost:8080 go test -v -count=1 ./e2e/...
 
+# E2E tests with rate limiting enabled (requires RATE_LIMIT_ENABLED=true on server)
+.PHONY: test-e2e-ratelimit
+test-e2e-ratelimit:
+	RATE_LIMIT_ENABLED=true go tool runn run e2e/rate_limit.yaml --verbose
+	E2E_BASE_URL=http://localhost:8080 RATE_LIMIT_ENABLED=true go test -v -count=1 -run "TestE2E_RateLimit" ./e2e/...
+
 # Version detection
 VERSION ?= $(shell ./scripts/version.sh)
 LDFLAGS := -X github.com/tacokumo/portal-api/pkg/version.Version=$(VERSION)

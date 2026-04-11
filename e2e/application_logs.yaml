@@ -1,0 +1,24 @@
+desc: "Application Logs APIが正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  invalid_bearer_logs_returns_non_200:
+    desc: "不正なBearerトークンでのログ取得リクエストは成功しないこと"
+    req:
+      /v1alpha1/applications/example-app/logs:
+        get:
+          header:
+            Authorization: "Bearer invalid-token"
+    test: |
+      current.res.status != 200
+  logs_without_k8s_returns_503:
+    desc: "K8sクラスタ未接続時はログ取得が503を返すこと"
+    req:
+      /v1alpha1/applications/example-app/logs:
+        get:
+          header:
+            Authorization: "Bearer {{env.E2E_BEARER_TOKEN}}"
+    test: |
+      current.res.status == 503
+    if: "env.E2E_BEARER_TOKEN != ''"

@@ -38,6 +38,12 @@ type Handler interface {
 	//
 	// GET /v1alpha1/applications/{name}
 	GetApplication(ctx context.Context, params GetApplicationParams) (*Application, error)
+	// GetApplicationLogs implements GetApplicationLogs operation.
+	//
+	// 特定のアプリケーションのPodログを取得するAPI.
+	//
+	// GET /v1alpha1/applications/{name}/logs
+	GetApplicationLogs(ctx context.Context, params GetApplicationLogsParams) (GetApplicationLogsRes, error)
 	// GetApplicationSecret implements GetApplicationSecret operation.
 	//
 	// 特定のアプリケーションのシークレットを取得するAPI.

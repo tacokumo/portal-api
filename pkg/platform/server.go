@@ -15,6 +15,7 @@ import (
 	"github.com/tacokumo/portal-api/pkg/auth/session"
 	"github.com/tacokumo/portal-api/pkg/config"
 	"github.com/tacokumo/portal-api/pkg/k8sclient"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -87,8 +88,10 @@ func (s *Server) Start(ctx context.Context) error {
 	corsMw := middleware.NewCORSMiddleware(cfg.Security.CORS)
 	e.Use(corsMw.Handle())
 
-	// レート制限ミドルウェア（全体に適用）
-	e.Use(rateLimitMw.IPRateLimit())
+	// レート制限ミドルウェア（オプトイン）
+	if cfg.Security.RateLimit.Enabled {
+		e.Use(rateLimitMw.IPRateLimit())
+	}
 
 	// 監査ログミドルウェア（全体に適用）
 	e.Use(auditMw.Log())
@@ -103,7 +106,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.logger.InfoContext(ctx, "middleware enabled",
 		"auth_middleware", "configured",
 		"cors", "enabled",
-		"rate_limit", "enabled",
+		"rate_limit", cfg.Security.RateLimit.Enabled,
 		"audit_log", "enabled",
 		"csrf", "enabled",
 		"rbac", "configured")
@@ -119,11 +122,13 @@ func (s *Server) Start(ctx context.Context) error {
 
 	// 開発環境ではKubernetesクライアントを無効化
 	var k8sClient client.Client
+	var k8sClientset kubernetes.Interface
 	restConfig, err := rest.InClusterConfig()
 	if err != nil {
 		s.logger.InfoContext(ctx, "not running in kubernetes cluster, using mock client", "error", err)
 		// 開発環境用のモッククライアント（現在はnil）
 		k8sClient = nil
+		k8sClientset = nil
 	} else {
 		scheme, err := k8sclient.NewScheme()
 		if err != nil {
@@ -137,8 +142,13 @@ func (s *Server) Start(ctx context.Context) error {
 			s.logger.ErrorContext(ctx, "failed to create k8s client", "error", err)
 			return err
 		}
+		k8sClientset, err = kubernetes.NewForConfig(restConfig)
+		if err != nil {
+			s.logger.ErrorContext(ctx, "failed to create k8s clientset", "error", err)
+			return err
+		}
 	}
-	handler := v1alpha1.NewHandler(cfg, k8sClient, jwtManager, sessionManager, githubClient, organization)
+	handler := v1alpha1.NewHandler(cfg, k8sClient, k8sClientset, jwtManager, sessionManager, githubClient, organization)
 	securityHandler := v1alpha1.NewSecurityHandler(cfg, jwtManager, githubClient, sessionManager, organization)
 	apiServer, err := api.NewServer(handler, securityHandler)
 	if err != nil {

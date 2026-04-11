@@ -58,6 +58,15 @@ func (UnimplementedHandler) GetApplication(ctx context.Context, params GetApplic
 	return r, ht.ErrNotImplemented
 }
 
+// GetApplicationLogs implements GetApplicationLogs operation.
+//
+// 特定のアプリケーションのPodログを取得するAPI.
+//
+// GET /v1alpha1/applications/{name}/logs
+func (UnimplementedHandler) GetApplicationLogs(ctx context.Context, params GetApplicationLogsParams) (r GetApplicationLogsRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetApplicationSecret implements GetApplicationSecret operation.
 //
 // 特定のアプリケーションのシークレットを取得するAPI.

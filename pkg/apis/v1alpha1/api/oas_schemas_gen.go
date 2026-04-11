@@ -94,6 +94,34 @@ func (s *Application) SetAppconfigBranch(val string) {
 
 func (*Application) updateApplicationRes() {}
 
+// Ref: #/components/schemas/ApplicationLogs
+type ApplicationLogs struct {
+	ApplicationName string   `json:"application_name"`
+	PodLogs         []PodLog `json:"pod_logs"`
+}
+
+// GetApplicationName returns the value of ApplicationName.
+func (s *ApplicationLogs) GetApplicationName() string {
+	return s.ApplicationName
+}
+
+// GetPodLogs returns the value of PodLogs.
+func (s *ApplicationLogs) GetPodLogs() []PodLog {
+	return s.PodLogs
+}
+
+// SetApplicationName sets the value of ApplicationName.
+func (s *ApplicationLogs) SetApplicationName(val string) {
+	s.ApplicationName = val
+}
+
+// SetPodLogs sets the value of PodLogs.
+func (s *ApplicationLogs) SetPodLogs(val []PodLog) {
+	s.PodLogs = val
+}
+
+func (*ApplicationLogs) getApplicationLogsRes() {}
+
 // Ref: #/components/schemas/AuthResponse
 type AuthResponse struct {
 	Success   bool      `json:"success"`
@@ -340,6 +368,14 @@ func (s *ErrorStatusCode) SetResponse(val Error) {
 	s.Response = val
 }
 
+type GetApplicationLogsNotFound Error
+
+func (*GetApplicationLogsNotFound) getApplicationLogsRes() {}
+
+type GetApplicationLogsServiceUnavailable Error
+
+func (*GetApplicationLogsServiceUnavailable) getApplicationLogsRes() {}
+
 // GitHubOAuthLoginFound is response for GitHubOAuthLogin operation.
 type GitHubOAuthLoginFound struct{}
 
@@ -370,6 +406,98 @@ func (s *LogoutOK) GetSuccess() bool {
 // SetSuccess sets the value of Success.
 func (s *LogoutOK) SetSuccess(val bool) {
 	s.Success = val
+}
+
+// NewOptInt32 returns new OptInt32 with value set to v.
+func NewOptInt32(v int32) OptInt32 {
+	return OptInt32{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptInt32 is optional int32.
+type OptInt32 struct {
+	Value int32
+	Set   bool
+}
+
+// IsSet returns true if OptInt32 was set.
+func (o OptInt32) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptInt32) Reset() {
+	var v int32
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptInt32) SetTo(v int32) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptInt32) Get() (v int32, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptInt32) Or(d int32) int32 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptInt64 returns new OptInt64 with value set to v.
+func NewOptInt64(v int64) OptInt64 {
+	return OptInt64{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptInt64 is optional int64.
+type OptInt64 struct {
+	Value int64
+	Set   bool
+}
+
+// IsSet returns true if OptInt64 was set.
+func (o OptInt64) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptInt64) Reset() {
+	var v int64
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptInt64) SetTo(v int64) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptInt64) Get() (v int64, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptInt64) Or(d int64) int64 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
 }
 
 // NewOptString returns new OptString with value set to v.
@@ -416,6 +544,43 @@ func (o OptString) Or(d string) string {
 		return v
 	}
 	return d
+}
+
+// Ref: #/components/schemas/PodLog
+type PodLog struct {
+	PodName       string `json:"pod_name"`
+	ContainerName string `json:"container_name"`
+	Logs          string `json:"logs"`
+}
+
+// GetPodName returns the value of PodName.
+func (s *PodLog) GetPodName() string {
+	return s.PodName
+}
+
+// GetContainerName returns the value of ContainerName.
+func (s *PodLog) GetContainerName() string {
+	return s.ContainerName
+}
+
+// GetLogs returns the value of Logs.
+func (s *PodLog) GetLogs() string {
+	return s.Logs
+}
+
+// SetPodName sets the value of PodName.
+func (s *PodLog) SetPodName(val string) {
+	s.PodName = val
+}
+
+// SetContainerName sets the value of ContainerName.
+func (s *PodLog) SetContainerName(val string) {
+	s.ContainerName = val
+}
+
+// SetLogs sets the value of Logs.
+func (s *PodLog) SetLogs(val string) {
+	s.Logs = val
 }
 
 type RefreshTokenReq struct {

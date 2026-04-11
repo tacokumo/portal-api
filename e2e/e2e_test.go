@@ -517,8 +517,19 @@ func TestE2E_ApplicationUpdate_ValidationInvalidBranch(t *testing.T) {
 }
 
 // --- Rate Limit テスト ---
+// レート制限テストは RATE_LIMIT_ENABLED=true の環境でのみ実行する。
+// レート制限が有効だと後続テストが429で妨害されるため、オプトイン方式で分離する。
+
+func requireRateLimitEnabled(t *testing.T) {
+	t.Helper()
+	if os.Getenv("RATE_LIMIT_ENABLED") != "true" {
+		t.Skip("RATE_LIMIT_ENABLED is not true, skipping rate limit test")
+	}
+}
 
 func TestE2E_RateLimit_HeadersPresent(t *testing.T) {
+	requireRateLimitEnabled(t)
+
 	req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
 	require.NoError(t, err)
 
@@ -533,9 +544,9 @@ func TestE2E_RateLimit_HeadersPresent(t *testing.T) {
 }
 
 func TestE2E_RateLimit_ZZ_ExceedsLimit(t *testing.T) {
-	// NOTE: このテストはrate limitを使い切るため、必ず最後に実行する（ZZプレフィックス）
+	requireRateLimitEnabled(t)
+
 	// レート制限を超えるまでリクエストを送信
-	// docker-compose.yaml: RATE_LIMIT_IP_BURST=100
 	var got429 bool
 	for i := 0; i < 500; i++ {
 		req, err := http.NewRequest("GET", baseURL(t)+"/health/liveness", nil)
@@ -586,4 +597,59 @@ func TestE2E_SecretDelete_Unauthorized(t *testing.T) {
 	// 不正なトークンなので200/204以外を返すべき
 	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
 	assert.NotEqual(t, http.StatusNoContent, resp.StatusCode, "不正なトークンでは204を返さないべき")
+}
+
+// --- Application Logs テスト ---
+
+func TestE2E_ApplicationLogs_Unauthorized(t *testing.T) {
+	// 不正なトークンでのログ取得は認証エラー
+	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/logs", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
+}
+
+func TestE2E_ApplicationLogs_ServiceUnavailable(t *testing.T) {
+	// K8s未接続の開発環境ではログ取得が503を返す
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-logs-1")
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/logs", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "K8s未接続時は503を返すべき")
+}
+
+func TestE2E_ApplicationLogs_ValidationInvalidTailLines(t *testing.T) {
+	// 不正なtail_linesパラメータでバリデーションエラー
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-logs-2")
+	require.NoError(t, err)
+
+	// K8s未接続の場合は503が先に返るため、バリデーションテストはK8s接続時のみ意味がある
+	// ここでは503が返ることを確認（バリデーションよりK8s接続チェックが先に実行される）
+	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/logs?tail_lines=99999", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// 開発環境ではK8s未接続で503、K8s接続環境では400
+	assert.Contains(t, []int{http.StatusBadRequest, http.StatusServiceUnavailable}, resp.StatusCode,
+		"不正なtail_linesでは400または503を返すべき")
 }

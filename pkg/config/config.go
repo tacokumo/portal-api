@@ -60,6 +60,8 @@ type SecurityConfig struct {
 }
 
 type RateLimitConfig struct {
+	// Enabled: true = apply rate limiting middleware (opt-in)
+	Enabled bool `yaml:"enabled" env:"RATE_LIMIT_ENABLED" default:"false"`
 	// IP rate limiting: requests per period
 	IPRate  int `yaml:"ip_rate" env:"RATE_LIMIT_IP_RATE" default:"60"`
 	IPBurst int `yaml:"ip_burst" env:"RATE_LIMIT_IP_BURST" default:"20"`

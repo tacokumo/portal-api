@@ -302,38 +302,74 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/secret"
+					case '/': // Prefix: "/"
 
-						if l := len("/secret"); len(elem) >= l && elem[0:l] == "/secret" {
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
 						if len(elem) == 0 {
-							// Leaf node.
-							switch r.Method {
-							case "DELETE":
-								s.handleDeleteApplicationSecretRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							case "GET":
-								s.handleGetApplicationSecretRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							case "POST":
-								s.handleCreateApplicationSecretRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							case "PUT":
-								s.handleUpdateApplicationSecretRequest([1]string{
-									args[0],
-								}, elemIsEscaped, w, r)
-							default:
-								s.notAllowed(w, r, "DELETE,GET,POST,PUT")
+							break
+						}
+						switch elem[0] {
+						case 'l': // Prefix: "logs"
+
+							if l := len("logs"); len(elem) >= l && elem[0:l] == "logs" {
+								elem = elem[l:]
+							} else {
+								break
 							}
 
-							return
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "GET":
+									s.handleGetApplicationLogsRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, "GET")
+								}
+
+								return
+							}
+
+						case 's': // Prefix: "secret"
+
+							if l := len("secret"); len(elem) >= l && elem[0:l] == "secret" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch r.Method {
+								case "DELETE":
+									s.handleDeleteApplicationSecretRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "GET":
+									s.handleGetApplicationSecretRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "POST":
+									s.handleCreateApplicationSecretRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								case "PUT":
+									s.handleUpdateApplicationSecretRequest([1]string{
+										args[0],
+									}, elemIsEscaped, w, r)
+								default:
+									s.notAllowed(w, r, "DELETE,GET,POST,PUT")
+								}
+
+								return
+							}
+
 						}
 
 					}
@@ -741,56 +777,95 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 						}
 					}
 					switch elem[0] {
-					case '/': // Prefix: "/secret"
+					case '/': // Prefix: "/"
 
-						if l := len("/secret"); len(elem) >= l && elem[0:l] == "/secret" {
+						if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 							elem = elem[l:]
 						} else {
 							break
 						}
 
 						if len(elem) == 0 {
-							// Leaf node.
-							switch method {
-							case "DELETE":
-								r.name = DeleteApplicationSecretOperation
-								r.summary = "Delete Application Secret"
-								r.operationID = "DeleteApplicationSecret"
-								r.operationGroup = ""
-								r.pathPattern = "/v1alpha1/applications/{name}/secret"
-								r.args = args
-								r.count = 1
-								return r, true
-							case "GET":
-								r.name = GetApplicationSecretOperation
-								r.summary = "Get Application Secret"
-								r.operationID = "GetApplicationSecret"
-								r.operationGroup = ""
-								r.pathPattern = "/v1alpha1/applications/{name}/secret"
-								r.args = args
-								r.count = 1
-								return r, true
-							case "POST":
-								r.name = CreateApplicationSecretOperation
-								r.summary = "Create Application Secret"
-								r.operationID = "CreateApplicationSecret"
-								r.operationGroup = ""
-								r.pathPattern = "/v1alpha1/applications/{name}/secret"
-								r.args = args
-								r.count = 1
-								return r, true
-							case "PUT":
-								r.name = UpdateApplicationSecretOperation
-								r.summary = "Update Application Secret"
-								r.operationID = "UpdateApplicationSecret"
-								r.operationGroup = ""
-								r.pathPattern = "/v1alpha1/applications/{name}/secret"
-								r.args = args
-								r.count = 1
-								return r, true
-							default:
-								return
+							break
+						}
+						switch elem[0] {
+						case 'l': // Prefix: "logs"
+
+							if l := len("logs"); len(elem) >= l && elem[0:l] == "logs" {
+								elem = elem[l:]
+							} else {
+								break
 							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "GET":
+									r.name = GetApplicationLogsOperation
+									r.summary = "Get Application Logs"
+									r.operationID = "GetApplicationLogs"
+									r.operationGroup = ""
+									r.pathPattern = "/v1alpha1/applications/{name}/logs"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
+						case 's': // Prefix: "secret"
+
+							if l := len("secret"); len(elem) >= l && elem[0:l] == "secret" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								// Leaf node.
+								switch method {
+								case "DELETE":
+									r.name = DeleteApplicationSecretOperation
+									r.summary = "Delete Application Secret"
+									r.operationID = "DeleteApplicationSecret"
+									r.operationGroup = ""
+									r.pathPattern = "/v1alpha1/applications/{name}/secret"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "GET":
+									r.name = GetApplicationSecretOperation
+									r.summary = "Get Application Secret"
+									r.operationID = "GetApplicationSecret"
+									r.operationGroup = ""
+									r.pathPattern = "/v1alpha1/applications/{name}/secret"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "POST":
+									r.name = CreateApplicationSecretOperation
+									r.summary = "Create Application Secret"
+									r.operationID = "CreateApplicationSecret"
+									r.operationGroup = ""
+									r.pathPattern = "/v1alpha1/applications/{name}/secret"
+									r.args = args
+									r.count = 1
+									return r, true
+								case "PUT":
+									r.name = UpdateApplicationSecretOperation
+									r.summary = "Update Application Secret"
+									r.operationID = "UpdateApplicationSecret"
+									r.operationGroup = ""
+									r.pathPattern = "/v1alpha1/applications/{name}/secret"
+									r.args = args
+									r.count = 1
+									return r, true
+								default:
+									return
+								}
+							}
+
 						}
 
 					}

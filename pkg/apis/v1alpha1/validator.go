@@ -171,6 +171,23 @@ func ValidateSecretValue(value string) error {
 	return nil
 }
 
+func ValidateGetApplicationLogsParams(params api.GetApplicationLogsParams) error {
+	if err := ValidateApplicationName(params.Name); err != nil {
+		return err
+	}
+	if v, ok := params.TailLines.Get(); ok {
+		if v < 1 || v > 10000 {
+			return validationError("tail_lines must be between 1 and 10000")
+		}
+	}
+	if v, ok := params.SinceSeconds.Get(); ok {
+		if v < 1 {
+			return validationError("since_seconds must be greater than 0")
+		}
+	}
+	return nil
+}
+
 func ValidateCreateApplicationRequest(req *api.CreateApplicationRequest) error {
 	if err := ValidateApplicationName(req.Name); err != nil {
 		return err

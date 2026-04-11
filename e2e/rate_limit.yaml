@@ -1,4 +1,5 @@
 desc: "レート制限が正しく機能すること"
+if: "env.RATE_LIMIT_ENABLED == 'true'"
 runners:
   req:
     endpoint: http://localhost:8080

@@ -278,6 +278,284 @@ func decodeGetApplicationParams(args [1]string, argsEscaped bool, r *http.Reques
 	return params, nil
 }
 
+// GetApplicationLogsParams is parameters of GetApplicationLogs operation.
+type GetApplicationLogsParams struct {
+	// アプリケーション名.
+	Name string
+	// 取得する末尾行数 (デフォルト: 100).
+	TailLines OptInt32 `json:",omitempty,omitzero"`
+	// 直近N秒分のログを取得.
+	SinceSeconds OptInt64 `json:",omitempty,omitzero"`
+	// コンテナ名（複数コンテナPod用）.
+	Container OptString `json:",omitempty,omitzero"`
+}
+
+func unpackGetApplicationLogsParams(packed middleware.Parameters) (params GetApplicationLogsParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "tail_lines",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.TailLines = v.(OptInt32)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "since_seconds",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.SinceSeconds = v.(OptInt64)
+		}
+	}
+	{
+		key := middleware.ParameterKey{
+			Name: "container",
+			In:   "query",
+		}
+		if v, ok := packed[key]; ok {
+			params.Container = v.(OptString)
+		}
+	}
+	return params
+}
+
+func decodeGetApplicationLogsParams(args [1]string, argsEscaped bool, r *http.Request) (params GetApplicationLogsParams, _ error) {
+	q := uri.NewQueryDecoder(r.URL.Query())
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	// Set default value for query: tail_lines.
+	{
+		val := int32(100)
+		params.TailLines.SetTo(val)
+	}
+	// Decode query: tail_lines.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "tail_lines",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotTailLinesVal int32
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt32(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotTailLinesVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.TailLines.SetTo(paramsDotTailLinesVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if value, ok := params.TailLines.Get(); ok {
+					if err := func() error {
+						if err := (validate.Int{
+							MinSet:        true,
+							Min:           1,
+							MaxSet:        true,
+							Max:           10000,
+							MinExclusive:  false,
+							MaxExclusive:  false,
+							MultipleOfSet: false,
+							MultipleOf:    0,
+							Pattern:       nil,
+						}).Validate(int64(value)); err != nil {
+							return errors.Wrap(err, "int")
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "tail_lines",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: since_seconds.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "since_seconds",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotSinceSecondsVal int64
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToInt64(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotSinceSecondsVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.SinceSeconds.SetTo(paramsDotSinceSecondsVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+			if err := func() error {
+				if value, ok := params.SinceSeconds.Get(); ok {
+					if err := func() error {
+						if err := (validate.Int{
+							MinSet:        true,
+							Min:           1,
+							MaxSet:        false,
+							Max:           0,
+							MinExclusive:  false,
+							MaxExclusive:  false,
+							MultipleOfSet: false,
+							MultipleOf:    0,
+							Pattern:       nil,
+						}).Validate(int64(value)); err != nil {
+							return errors.Wrap(err, "int")
+						}
+						return nil
+					}(); err != nil {
+						return err
+					}
+				}
+				return nil
+			}(); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "since_seconds",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	// Decode query: container.
+	if err := func() error {
+		cfg := uri.QueryParameterDecodingConfig{
+			Name:    "container",
+			Style:   uri.QueryStyleForm,
+			Explode: true,
+		}
+
+		if err := q.HasParam(cfg); err == nil {
+			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
+				var paramsDotContainerVal string
+				if err := func() error {
+					val, err := d.DecodeValue()
+					if err != nil {
+						return err
+					}
+
+					c, err := conv.ToString(val)
+					if err != nil {
+						return err
+					}
+
+					paramsDotContainerVal = c
+					return nil
+				}(); err != nil {
+					return err
+				}
+				params.Container.SetTo(paramsDotContainerVal)
+				return nil
+			}); err != nil {
+				return err
+			}
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "container",
+			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetApplicationSecretParams is parameters of GetApplicationSecret operation.
 type GetApplicationSecretParams struct {
 	// アプリケーション名.

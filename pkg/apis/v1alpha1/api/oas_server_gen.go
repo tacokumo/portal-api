@@ -44,6 +44,12 @@ type Handler interface {
 	//
 	// GET /v1alpha1/applications/{name}/logs
 	GetApplicationLogs(ctx context.Context, params GetApplicationLogsParams) (GetApplicationLogsRes, error)
+	// GetApplicationReleases implements GetApplicationReleases operation.
+	//
+	// 特定のアプリケーションのリリース一覧を取得するAPI.
+	//
+	// GET /v1alpha1/applications/{name}/releases
+	GetApplicationReleases(ctx context.Context, params GetApplicationReleasesParams) (GetApplicationReleasesRes, error)
 	// GetApplicationSecret implements GetApplicationSecret operation.
 	//
 	// 特定のアプリケーションのシークレットを取得するAPI.
@@ -98,6 +104,12 @@ type Handler interface {
 	//
 	// POST /auth/refresh
 	RefreshToken(ctx context.Context, req *RefreshTokenReq) (RefreshTokenRes, error)
+	// RollbackApplication implements RollbackApplication operation.
+	//
+	// 特定のアプリケーションを指定したリリースにロールバックするAPI.
+	//
+	// POST /v1alpha1/applications/{name}/rollback
+	RollbackApplication(ctx context.Context, req *RollbackRequest, params RollbackApplicationParams) (RollbackApplicationRes, error)
 	// UpdateApplication implements UpdateApplication operation.
 	//
 	// 特定のアプリケーションを更新するAPI.

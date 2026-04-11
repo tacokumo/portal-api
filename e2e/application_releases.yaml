@@ -1,0 +1,27 @@
+desc: "Application Releases / Rollback APIが正しく機能すること"
+runners:
+  req:
+    endpoint: http://localhost:8080
+steps:
+  invalid_bearer_releases_returns_non_200:
+    desc: "不正なBearerトークンでのリリース一覧取得リクエストは成功しないこと"
+    req:
+      /v1alpha1/applications/example-app/releases:
+        get:
+          header:
+            Authorization: "Bearer invalid-token"
+    test: |
+      current.res.status != 200
+  invalid_bearer_rollback_returns_non_200:
+    desc: "不正なBearerトークンでのロールバックリクエストは成功しないこと"
+    req:
+      /v1alpha1/applications/example-app/rollback:
+        post:
+          header:
+            Authorization: "Bearer invalid-token"
+            Content-Type: "application/json"
+          body:
+            application/json:
+              release_name: "some-release"
+    test: |
+      current.res.status != 200

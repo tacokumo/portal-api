@@ -21,6 +21,7 @@ type Handler struct {
 	*ApplicationService
 	*ApplicationSecretService
 	*ApplicationLogService
+	*ReleaseService
 	*AuthService
 }
 
@@ -38,6 +39,7 @@ func NewHandler(
 		ApplicationService:       &ApplicationService{config: cfg, client: client},
 		ApplicationSecretService: NewApplicationSecretService(cfg, client),
 		ApplicationLogService:    &ApplicationLogService{config: cfg, client: client, clientset: clientset},
+		ReleaseService:           &ReleaseService{config: cfg, client: client},
 		AuthService: NewAuthService(
 			cfg,
 			githubClient,

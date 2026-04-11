@@ -336,6 +336,64 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 								return
 							}
 
+						case 'r': // Prefix: "r"
+
+							if l := len("r"); len(elem) >= l && elem[0:l] == "r" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								break
+							}
+							switch elem[0] {
+							case 'e': // Prefix: "eleases"
+
+								if l := len("eleases"); len(elem) >= l && elem[0:l] == "eleases" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch r.Method {
+									case "GET":
+										s.handleGetApplicationReleasesRequest([1]string{
+											args[0],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, "GET")
+									}
+
+									return
+								}
+
+							case 'o': // Prefix: "ollback"
+
+								if l := len("ollback"); len(elem) >= l && elem[0:l] == "ollback" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch r.Method {
+									case "POST":
+										s.handleRollbackApplicationRequest([1]string{
+											args[0],
+										}, elemIsEscaped, w, r)
+									default:
+										s.notAllowed(w, r, "POST")
+									}
+
+									return
+								}
+
+							}
+
 						case 's': // Prefix: "secret"
 
 							if l := len("secret"); len(elem) >= l && elem[0:l] == "secret" {
@@ -812,6 +870,70 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 								default:
 									return
 								}
+							}
+
+						case 'r': // Prefix: "r"
+
+							if l := len("r"); len(elem) >= l && elem[0:l] == "r" {
+								elem = elem[l:]
+							} else {
+								break
+							}
+
+							if len(elem) == 0 {
+								break
+							}
+							switch elem[0] {
+							case 'e': // Prefix: "eleases"
+
+								if l := len("eleases"); len(elem) >= l && elem[0:l] == "eleases" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch method {
+									case "GET":
+										r.name = GetApplicationReleasesOperation
+										r.summary = "Get Application Releases"
+										r.operationID = "GetApplicationReleases"
+										r.operationGroup = ""
+										r.pathPattern = "/v1alpha1/applications/{name}/releases"
+										r.args = args
+										r.count = 1
+										return r, true
+									default:
+										return
+									}
+								}
+
+							case 'o': // Prefix: "ollback"
+
+								if l := len("ollback"); len(elem) >= l && elem[0:l] == "ollback" {
+									elem = elem[l:]
+								} else {
+									break
+								}
+
+								if len(elem) == 0 {
+									// Leaf node.
+									switch method {
+									case "POST":
+										r.name = RollbackApplicationOperation
+										r.summary = "Rollback Application"
+										r.operationID = "RollbackApplication"
+										r.operationGroup = ""
+										r.pathPattern = "/v1alpha1/applications/{name}/rollback"
+										r.args = args
+										r.count = 1
+										return r, true
+									default:
+										return
+									}
+								}
+
 							}
 
 						case 's': // Prefix: "secret"

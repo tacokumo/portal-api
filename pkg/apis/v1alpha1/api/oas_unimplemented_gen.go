@@ -67,6 +67,15 @@ func (UnimplementedHandler) GetApplicationLogs(ctx context.Context, params GetAp
 	return r, ht.ErrNotImplemented
 }
 
+// GetApplicationReleases implements GetApplicationReleases operation.
+//
+// 特定のアプリケーションのリリース一覧を取得するAPI.
+//
+// GET /v1alpha1/applications/{name}/releases
+func (UnimplementedHandler) GetApplicationReleases(ctx context.Context, params GetApplicationReleasesParams) (r GetApplicationReleasesRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // GetApplicationSecret implements GetApplicationSecret operation.
 //
 // 特定のアプリケーションのシークレットを取得するAPI.
@@ -145,6 +154,15 @@ func (UnimplementedHandler) Logout(ctx context.Context) (r *LogoutOK, _ error) {
 //
 // POST /auth/refresh
 func (UnimplementedHandler) RefreshToken(ctx context.Context, req *RefreshTokenReq) (r RefreshTokenRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
+// RollbackApplication implements RollbackApplication operation.
+//
+// 特定のアプリケーションを指定したリリースにロールバックするAPI.
+//
+// POST /v1alpha1/applications/{name}/rollback
+func (UnimplementedHandler) RollbackApplication(ctx context.Context, req *RollbackRequest, params RollbackApplicationParams) (r RollbackApplicationRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

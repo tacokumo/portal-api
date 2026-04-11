@@ -217,6 +217,17 @@ func ValidateUpdateApplicationRequest(req *api.UpdateApplicationRequest) error {
 	return nil
 }
 
+func ValidateReleaseName(name string) error {
+	if !applicationNameRegexp.MatchString(name) {
+		return validationError("release name must be 1-63 characters, lowercase alphanumeric or '-', and must start and end with an alphanumeric character")
+	}
+	return nil
+}
+
+func ValidateRollbackRequest(req *api.RollbackRequest) error {
+	return ValidateReleaseName(req.ReleaseName)
+}
+
 func ValidateCreateSecretRequest(req *api.CreateSecretRequest) error {
 	if len(req.Items) == 0 {
 		return validationError("at least one secret item is required")

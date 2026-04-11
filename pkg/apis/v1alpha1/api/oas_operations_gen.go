@@ -12,6 +12,7 @@ const (
 	DeleteApplicationSecretOperation OperationName = "DeleteApplicationSecret"
 	GetApplicationOperation          OperationName = "GetApplication"
 	GetApplicationLogsOperation      OperationName = "GetApplicationLogs"
+	GetApplicationReleasesOperation  OperationName = "GetApplicationReleases"
 	GetApplicationSecretOperation    OperationName = "GetApplicationSecret"
 	GetApplicationsOperation         OperationName = "GetApplications"
 	GetCSRFTokenOperation            OperationName = "GetCSRFToken"
@@ -21,6 +22,7 @@ const (
 	GitHubOAuthLoginOperation        OperationName = "GitHubOAuthLogin"
 	LogoutOperation                  OperationName = "Logout"
 	RefreshTokenOperation            OperationName = "RefreshToken"
+	RollbackApplicationOperation     OperationName = "RollbackApplication"
 	UpdateApplicationOperation       OperationName = "UpdateApplication"
 	UpdateApplicationSecretOperation OperationName = "UpdateApplicationSecret"
 )

@@ -92,7 +92,8 @@ func (s *Application) SetAppconfigBranch(val string) {
 	s.AppconfigBranch = val
 }
 
-func (*Application) updateApplicationRes() {}
+func (*Application) rollbackApplicationRes() {}
+func (*Application) updateApplicationRes()   {}
 
 // Ref: #/components/schemas/ApplicationLogs
 type ApplicationLogs struct {
@@ -376,6 +377,18 @@ type GetApplicationLogsServiceUnavailable Error
 
 func (*GetApplicationLogsServiceUnavailable) getApplicationLogsRes() {}
 
+type GetApplicationReleasesNotFound Error
+
+func (*GetApplicationReleasesNotFound) getApplicationReleasesRes() {}
+
+type GetApplicationReleasesOKApplicationJSON []Release
+
+func (*GetApplicationReleasesOKApplicationJSON) getApplicationReleasesRes() {}
+
+type GetApplicationReleasesServiceUnavailable Error
+
+func (*GetApplicationReleasesServiceUnavailable) getApplicationReleasesRes() {}
+
 // GitHubOAuthLoginFound is response for GitHubOAuthLogin operation.
 type GitHubOAuthLoginFound struct{}
 
@@ -595,6 +608,110 @@ func (s *RefreshTokenReq) GetRefreshToken() string {
 // SetRefreshToken sets the value of RefreshToken.
 func (s *RefreshTokenReq) SetRefreshToken(val string) {
 	s.RefreshToken = val
+}
+
+// Ref: #/components/schemas/Release
+type Release struct {
+	Name            string    `json:"name"`
+	Commit          OptString `json:"commit"`
+	State           string    `json:"state"`
+	RepositoryURL   string    `json:"repository_url"`
+	AppconfigPath   string    `json:"appconfig_path"`
+	AppconfigBranch string    `json:"appconfig_branch"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+// GetName returns the value of Name.
+func (s *Release) GetName() string {
+	return s.Name
+}
+
+// GetCommit returns the value of Commit.
+func (s *Release) GetCommit() OptString {
+	return s.Commit
+}
+
+// GetState returns the value of State.
+func (s *Release) GetState() string {
+	return s.State
+}
+
+// GetRepositoryURL returns the value of RepositoryURL.
+func (s *Release) GetRepositoryURL() string {
+	return s.RepositoryURL
+}
+
+// GetAppconfigPath returns the value of AppconfigPath.
+func (s *Release) GetAppconfigPath() string {
+	return s.AppconfigPath
+}
+
+// GetAppconfigBranch returns the value of AppconfigBranch.
+func (s *Release) GetAppconfigBranch() string {
+	return s.AppconfigBranch
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *Release) GetCreatedAt() time.Time {
+	return s.CreatedAt
+}
+
+// SetName sets the value of Name.
+func (s *Release) SetName(val string) {
+	s.Name = val
+}
+
+// SetCommit sets the value of Commit.
+func (s *Release) SetCommit(val OptString) {
+	s.Commit = val
+}
+
+// SetState sets the value of State.
+func (s *Release) SetState(val string) {
+	s.State = val
+}
+
+// SetRepositoryURL sets the value of RepositoryURL.
+func (s *Release) SetRepositoryURL(val string) {
+	s.RepositoryURL = val
+}
+
+// SetAppconfigPath sets the value of AppconfigPath.
+func (s *Release) SetAppconfigPath(val string) {
+	s.AppconfigPath = val
+}
+
+// SetAppconfigBranch sets the value of AppconfigBranch.
+func (s *Release) SetAppconfigBranch(val string) {
+	s.AppconfigBranch = val
+}
+
+// SetCreatedAt sets the value of CreatedAt.
+func (s *Release) SetCreatedAt(val time.Time) {
+	s.CreatedAt = val
+}
+
+type RollbackApplicationNotFound Error
+
+func (*RollbackApplicationNotFound) rollbackApplicationRes() {}
+
+type RollbackApplicationServiceUnavailable Error
+
+func (*RollbackApplicationServiceUnavailable) rollbackApplicationRes() {}
+
+// Ref: #/components/schemas/RollbackRequest
+type RollbackRequest struct {
+	ReleaseName string `json:"release_name"`
+}
+
+// GetReleaseName returns the value of ReleaseName.
+func (s *RollbackRequest) GetReleaseName() string {
+	return s.ReleaseName
+}
+
+// SetReleaseName sets the value of ReleaseName.
+func (s *RollbackRequest) SetReleaseName(val string) {
+	s.ReleaseName = val
 }
 
 // Ref: #/components/schemas/Secret

@@ -411,6 +411,93 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /v1alpha1/applications/{name}/releases:
+    get:
+      tags:
+        - "applications"
+      summary: "Get Application Releases"
+      description: "特定のアプリケーションのリリース一覧を取得するAPI"
+      operationId: "GetApplicationReleases"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      responses:
+        '200':
+          description: "リリース一覧の取得成功"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Release"
+        '404':
+          description: "アプリケーションが見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '503':
+          description: "Kubernetesクラスタに接続できない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1alpha1/applications/{name}/rollback:
+    post:
+      tags:
+        - "applications"
+      summary: "Rollback Application"
+      description: "特定のアプリケーションを指定したリリースにロールバックするAPI"
+      operationId: "RollbackApplication"
+      parameters:
+        - name: "name"
+          in: "path"
+          description: "アプリケーション名"
+          required: true
+          schema:
+            type: "string"
+      requestBody:
+        description: "ロールバック先のリリース情報"
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RollbackRequest"
+      responses:
+        '200':
+          description: "ロールバック成功"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Application"
+        '404':
+          description: "アプリケーションまたはリリースが見つからない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '503':
+          description: "Kubernetesクラスタに接続できない"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "デフォルトのレスポンス"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /v1alpha1/applications/{name}/secret:
     get:
       tags:
@@ -672,6 +759,38 @@ components:
         - pod_name
         - container_name
         - logs
+    Release:
+      type: object
+      properties:
+        name:
+          type: string
+        commit:
+          type: string
+        state:
+          type: string
+        repository_url:
+          type: string
+        appconfig_path:
+          type: string
+        appconfig_branch:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - name
+        - state
+        - repository_url
+        - appconfig_path
+        - appconfig_branch
+        - created_at
+    RollbackRequest:
+      type: object
+      properties:
+        release_name:
+          type: string
+      required:
+        - release_name
     CreateSecretRequest:
       type: object
       properties:

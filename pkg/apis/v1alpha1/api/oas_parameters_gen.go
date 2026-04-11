@@ -556,6 +556,72 @@ func decodeGetApplicationLogsParams(args [1]string, argsEscaped bool, r *http.Re
 	return params, nil
 }
 
+// GetApplicationReleasesParams is parameters of GetApplicationReleases operation.
+type GetApplicationReleasesParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackGetApplicationReleasesParams(packed middleware.Parameters) (params GetApplicationReleasesParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeGetApplicationReleasesParams(args [1]string, argsEscaped bool, r *http.Request) (params GetApplicationReleasesParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
 // GetApplicationSecretParams is parameters of GetApplicationSecret operation.
 type GetApplicationSecretParams struct {
 	// アプリケーション名.
@@ -719,6 +785,72 @@ func decodeGitHubOAuthCallbackParams(args [0]string, argsEscaped bool, r *http.R
 		return params, &ogenerrors.DecodeParamError{
 			Name: "state",
 			In:   "query",
+			Err:  err,
+		}
+	}
+	return params, nil
+}
+
+// RollbackApplicationParams is parameters of RollbackApplication operation.
+type RollbackApplicationParams struct {
+	// アプリケーション名.
+	Name string
+}
+
+func unpackRollbackApplicationParams(packed middleware.Parameters) (params RollbackApplicationParams) {
+	{
+		key := middleware.ParameterKey{
+			Name: "name",
+			In:   "path",
+		}
+		params.Name = packed[key].(string)
+	}
+	return params
+}
+
+func decodeRollbackApplicationParams(args [1]string, argsEscaped bool, r *http.Request) (params RollbackApplicationParams, _ error) {
+	// Decode path: name.
+	if err := func() error {
+		param := args[0]
+		if argsEscaped {
+			unescaped, err := url.PathUnescape(args[0])
+			if err != nil {
+				return errors.Wrap(err, "unescape path")
+			}
+			param = unescaped
+		}
+		if len(param) > 0 {
+			d := uri.NewPathDecoder(uri.PathDecoderConfig{
+				Param:   "name",
+				Value:   param,
+				Style:   uri.PathStyleSimple,
+				Explode: false,
+			})
+
+			if err := func() error {
+				val, err := d.DecodeValue()
+				if err != nil {
+					return err
+				}
+
+				c, err := conv.ToString(val)
+				if err != nil {
+					return err
+				}
+
+				params.Name = c
+				return nil
+			}(); err != nil {
+				return err
+			}
+		} else {
+			return validate.ErrFieldRequired
+		}
+		return nil
+	}(); err != nil {
+		return params, &ogenerrors.DecodeParamError{
+			Name: "name",
+			In:   "path",
 			Err:  err,
 		}
 	}

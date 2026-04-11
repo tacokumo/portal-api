@@ -601,6 +601,100 @@ func TestE2E_SecretDelete_Unauthorized(t *testing.T) {
 
 // --- Application Logs テスト ---
 
+// --- Application Releases テスト ---
+
+func TestE2E_ApplicationReleases_Unauthorized(t *testing.T) {
+	// 不正なトークンでのリリース一覧取得は認証エラー
+	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/releases", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
+}
+
+func TestE2E_ApplicationReleases_ServiceUnavailable(t *testing.T) {
+	// K8s未接続の開発環境ではリリース一覧取得が503を返す
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-releases-1")
+	require.NoError(t, err)
+
+	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/releases", nil)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "K8s未接続時は503を返すべき")
+}
+
+// --- Application Rollback テスト ---
+
+func TestE2E_ApplicationRollback_Unauthorized(t *testing.T) {
+	// 不正なトークンでのロールバックは認証エラー
+	body := `{"release_name":"some-release"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/example-app/rollback", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer invalid-token")
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.NotEqual(t, http.StatusOK, resp.StatusCode, "不正なトークンでは200を返さないべき")
+}
+
+func TestE2E_ApplicationRollback_ServiceUnavailable(t *testing.T) {
+	// K8s未接続の開発環境ではロールバックが503を返す
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-rollback-1")
+	require.NoError(t, err)
+
+	body := `{"release_name":"some-release"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/example-app/rollback", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	assert.Equal(t, http.StatusServiceUnavailable, resp.StatusCode, "K8s未接続時は503を返すべき")
+}
+
+func TestE2E_ApplicationRollback_ValidationInvalidReleaseName(t *testing.T) {
+	// 不正なrelease_nameでバリデーションエラー
+	jwtMgr := newJWTManager(t)
+	user := auth.User{ID: "e2e-user", Login: "e2e-test", Teams: []string{"tacokumo/dev"}}
+	tokenPair, err := jwtMgr.GenerateTokenPair(user, "e2e-session-rollback-2")
+	require.NoError(t, err)
+
+	body := `{"release_name":"Invalid-Release-Name"}`
+	req, err := http.NewRequest("POST", baseURL(t)+"/v1alpha1/applications/example-app/rollback", strings.NewReader(body))
+	require.NoError(t, err)
+	req.Header.Set("Authorization", "Bearer "+tokenPair.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	// K8s未接続環境では503が先に返る可能性がある
+	assert.Contains(t, []int{http.StatusBadRequest, http.StatusServiceUnavailable}, resp.StatusCode,
+		"不正なrelease_nameでは400または503を返すべき")
+}
+
+// --- Application Logs テスト ---
+
 func TestE2E_ApplicationLogs_Unauthorized(t *testing.T) {
 	// 不正なトークンでのログ取得は認証エラー
 	req, err := http.NewRequest("GET", baseURL(t)+"/v1alpha1/applications/example-app/logs", nil)

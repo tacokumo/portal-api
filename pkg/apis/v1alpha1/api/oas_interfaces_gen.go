@@ -13,12 +13,20 @@ type GetApplicationLogsRes interface {
 	getApplicationLogsRes()
 }
 
+type GetApplicationReleasesRes interface {
+	getApplicationReleasesRes()
+}
+
 type GitHubOAuthCallbackRes interface {
 	gitHubOAuthCallbackRes()
 }
 
 type RefreshTokenRes interface {
 	refreshTokenRes()
+}
+
+type RollbackApplicationRes interface {
+	rollbackApplicationRes()
 }
 
 type UpdateApplicationRes interface {

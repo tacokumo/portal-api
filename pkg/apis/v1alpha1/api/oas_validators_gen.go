@@ -76,6 +76,14 @@ func (s *CreateSecretRequest) Validate() error {
 	return nil
 }
 
+func (s GetApplicationReleasesOKApplicationJSON) Validate() error {
+	alias := ([]Release)(s)
+	if alias == nil {
+		return errors.New("nil is invalid value")
+	}
+	return nil
+}
+
 func (s *Secret) Validate() error {
 	if s == nil {
 		return validate.ErrNilPointer
